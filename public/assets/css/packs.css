@@ -1,0 +1,156 @@
+/* Styles pour la gestion des packs */
+
+.packs-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.packs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.packs-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    color: var(--text-color);
+}
+
+.packs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.pack-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.pack-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.pack-card.inactive {
+    opacity: 0.7;
+}
+
+.pack-card.inactive::before {
+    content: "Inactif";
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--text-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    z-index: 1;
+}
+
+.pack-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.pack-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pack-content {
+    padding: 1.5rem;
+}
+
+.pack-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.4rem;
+    color: var(--text-color);
+}
+
+.pack-price {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 0.5rem 0;
+}
+
+.pack-description {
+    color: #666;
+    margin: 1rem 0;
+    line-height: 1.5;
+}
+
+.pack-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-edit, .btn-delete {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-edit {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.btn-edit:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.btn-delete {
+    background-color: transparent;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.btn-delete:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .packs-container {
+        padding: 1rem;
+    }
+
+    .packs-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .packs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pack-actions {
+        flex-direction: column;
+    }
+
+    .btn-edit, .btn-delete {
+        width: 100%;
+        justify-content: center;
+    }
+}

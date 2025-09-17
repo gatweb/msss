@@ -1,0 +1,169 @@
+/* Style Boudoir "Darker" */
+body { 
+    font-family: 'Lato', sans-serif; 
+    background-color: #FADADD; 
+    color: #4a2a2a; 
+    margin: 0; 
+    padding: 0; 
+    line-height: 1.6; 
+}
+
+.container { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 20px; 
+}
+
+.main-content { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 30px; 
+    justify-content: center; 
+    align-items: flex-start; 
+}
+
+.image-container { 
+    flex: 1 1 35%; 
+    min-width: 300px; 
+    text-align: center; 
+}
+
+.image-container img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 15px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    transition: transform 0.3s ease; 
+}
+
+.image-container img:hover { 
+    transform: scale(1.03); 
+}
+
+.donation-form-container { 
+    flex: 1 1 55%; 
+    min-width: 300px; 
+}
+
+/* Barre de progression */
+.progress-section { 
+    margin-bottom: 30px; 
+}
+
+.progress-container { 
+    background-color: #F0D8D5; 
+    border-radius: 25px; 
+    padding: 5px; 
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+.progress-bar { 
+    background-color: #D8A0A6; 
+    height: 20px; 
+    border-radius: 25px; 
+    transition: width 1s ease-in-out; 
+}
+
+/* Formulaires */
+.form-group { 
+    margin-bottom: 15px; 
+}
+
+.form-group label { 
+    display: block; 
+    margin-bottom: 5px; 
+    color: #4a2a2a; 
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #D8A0A6; 
+    border-radius: 4px; 
+    background-color: #FFF5F5; 
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus { 
+    border-color: #A0522D; 
+    outline: none; 
+    box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.2); 
+}
+
+/* Boutons */
+.button { 
+    display: inline-flex; 
+    align-items: center; 
+    padding: 8px 16px; 
+    border: none; 
+    border-radius: 4px; 
+    background-color: #D8A0A6; 
+    color: white; 
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
+}
+
+.button:hover { 
+    background-color: #C08086; 
+}
+
+.button-start { 
+    background-color: #4CAF50; 
+}
+
+.button-start:hover { 
+    background-color: #45a049; 
+}
+
+.button-stop { 
+    background-color: #f44336; 
+}
+
+.button-stop:hover { 
+    background-color: #da190b; 
+}
+
+.button-delete { 
+    background-color: #8B0000; 
+}
+
+.button-delete:hover { 
+    background-color: #6F0000; 
+}
+
+.button i { 
+    margin-right: 4px; 
+}
+
+/* Messages */
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 4px solid #c62828;
+}
+
+.success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border-left: 4px solid #2e7d32;
+}
+
+/* Timers */
+.timer {
+    font-family: monospace;
+    font-size: 1.2em;
+    color: #4a2a2a;
+}
+
+.timer-stopped {
+    color: #c62828;
+}

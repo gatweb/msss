@@ -1,0 +1,140 @@
+CAHIER DES CHARGES (CDC)
+
+Structure Globale du Site
+On peut découper le site en 4 grandes zones logiques :
+ * Zone Publique (Landing Page / Sélection) : Point d'entrée pour tout visiteur.
+ * Zone Donateur (Interface par Créatrice) : Là où les donateurs interagissent spécifiquement avec une créatrice.
+ * Zone Créatrice (Tableau de Bord / Mini-CRM) : Espace privé et sécurisé pour la gestion par la créatrice.
+ * Zone Administration (Back-Office) : Pour la gestion globale du site par l'administrateur.
+1. Zone Publique (Landing Page / Sélection)
+ * Objectif : Permettre aux visiteurs (donateurs potentiels) de trouver et sélectionner la créatrice qu'ils souhaitent soutenir.
+ * Contenu :
+   * Titre / Logo du site.
+   * Grille ou liste des créatrices inscrites :
+     * Photo de profil.
+     * Nom / Pseudo.
+     * (Optionnel) Courte description ou tagline.
+     * Lien direct vers la "Zone Donateur" de cette créatrice.
+   * (Optionnel) Un lien vers une page "Comment ça marche ?" ou "À propos".
+   * Un lien discret vers la connexion/inscription pour les créatrices.
+ * Technique : HTML, CSS, PHP (pour lister dynamiquement les créatrices depuis la base de données).
+2. Zone Donateur (Interface par Créatrice)
+ * Objectif : Présenter une créatrice spécifique, encourager les dons et permettre l'achat de packs. Inspirer confiance et inciter à l'action.
+ * Thème : Sombre et mystique (comme demandé).
+ * Contenu :
+   * Profil de la Créatrice :
+     * Photo de profil actuelle (la même que celle qui évolue dans son tableau de bord).
+     * Nom / Pseudo.
+     * (Optionnel) Court message de la créatrice aux donateurs.
+   * Section Dons :
+     * Bouton d'appel à l'action clair (ex: "Soutenir [Nom Créatrice]").
+     * Options de montant (pré-définis + champ libre).
+     * Intégration d'un système de paiement sécurisé (PayPal, Stripe, etc.) - Point crucial à prévoir !
+   * Section Packs (si activée par la créatrice) :
+     * Liste des packs disponibles : Nom, description, prix, image/visuel.
+   * Liens Utiles (partagés par la créatrice) :
+     * Liste des liens que la créatrice a choisi de rendre publics (réseaux sociaux, portfolio, etc.).
+ * Technique : HTML, CSS (thème sombre/mystique/moderne/girly) inspiré d'un style "glassmorphysm" , PHP (pour afficher les infos spécifiques de la créatrice, ses packs, ses liens), JavaScript (pour l'interactivité, potentiellement pour le paiement), SQL (pour récupérer les données).
+3. Zone Créatrice (Tableau de Bord / Mini-CRM)
+ * Objectif : Fournir à la créatrice un outil complet pour suivre les dons, gérer les donateurs, se motiver et gérer son contenu additionnel (packs, liens).
+ * Thème : Girly et msss comme demandé).
+ * Structure Interne (Onglets ou Sections) :
+   * Tableau de Bord Principal :
+     * Vue d'ensemble : Montant total des dons, nombre de donateurs.
+     * Barre de Progression : Objectif fixé vs montant actuel. Visuellement attrayante.
+     * Photo de Profil Évolutive : Affichage de la photo correspondant au palier de dons atteint.
+{{ ... }}
+   * Gestion des Paramètres Généraux :
+     * Configurer les types de dons par défaut.
+     * Configurer les options standards pour les préférences "Aime" / "N'aime pas" (si elles sont communes à toutes les créatrices).
+     * (Optionnel) Modération de contenu si nécessaire.
+     * (Optionnel) Statistiques globales du site (nombre total de dons, nombre de créatrices actives...).
+ * Technique : HTML, CSS, PHP, JavaScript, SQL. Nécessite une attention particulière à la sécurité.
+Base de Données (SQL) - Structure Simplifiée
+Il faudra au minimum les tables suivantes :
+ * creators (id, name, email, password_hash, profile_goal, profile_pic_config, ...)
+ * donors (id, creator_id, name, email, sympathy_level, is_banned, last_donation_date, ...)
+ * donations (id, donor_id, creator_id, amount, donation_type, donation_date, notes, ...)
+{{ ... }}
+ * packs (id, creator_id, name, description, price, image_path, is_active, ...)
+ * creator_links (id, creator_id, title, url, ...)
+ * admins (id, username, password_hash, ...)
+Points Clés et Améliorations Supplémentaires :
+ * Sécurité : C'est primordial. Protéger les accès (mots de passe hashés), valider toutes les entrées utilisateurs (côté client et serveur), prévenir les injections SQL (requêtes préparées), sécuriser l'upload de fichiers (photos de profil, images de packs).
+ * Système de Paiement : Choisir et intégrer une solution de paiement fiable et sécurisée (Stripe, PayPal...). C'est une partie complexe qui demande de la rigueur.
+ * Expérience Utilisateur (UX) : Même si les thèmes sont définis ("girly", "mystique"), la navigation doit rester intuitive et simple pour les deux types d'utilisateurs (créatrices et donateurs).
+ * Responsivité : Le site doit être utilisable sur mobile et tablette.
+ * Scalabilité : Penser dès le début à une structure de base de données et de code qui puisse supporter l'ajout de nombreuses créatrices et donateurs sans ralentir.
+ * Chronomètre/Relance : Le "chronomètre" est une bonne idée. Il peut être un simple indicateur visuel du temps écoulé. Une notification pourrait apparaître dans le tableau de bord de la créatrice pour les donateurs "à relancer" (dépassant les 15 jours sans don).
+
+
+
+Structure des Dossiers :
+app/Core/ est le dossier principal à utiliser, il contient les classes à jour :
+Auth.php : Gestion de l'authentification
+BaseController.php : Contrôleur de base
+Database.php : Connexion à la base de données
+Router.php : Routage des requêtes
+View.php : Rendu des vues
+app/config/ est le dossier de configuration principal à utiliser :
+app.php : Configuration générale
+stripe.php : Configuration Stripe
+Dossiers et Fichiers à Supprimer :
+❌ app/core/ (minuscule) : Version obsolète, à supprimer
+❌ config/ (racine) : Ancienne configuration, à supprimer
+❌ includes/, templates/, src/ : Vestiges non utilisés, à supprimer
+❌ index.php à la racine : Non utilisé, public/index.php est le seul point d'entrée
+Points d'Entrée et Flux de l'Application :
+Point d'entrée : public/index.php
+Bootstrap : app/bootstrap.php
+Routes : app/routes.php
+Organisation des Fichiers :
+plaintext
+CopyInsert
+msss/
+├── app/
+│   ├── Controllers/    # Contrôleurs de l'application
+│   ├── Core/          # Classes principales du framework
+│   ├── Models/        # Modèles de données
+│   ├── config/        # Configuration de l'application
+│   ├── views/         # Templates des vues
+│   ├── bootstrap.php  # Initialisation de l'application
+│   └── routes.php     # Définition des routes
+├── public/           # Racine web publique
+│   ├── assets/       # Ressources statiques (CSS, JS, images)
+│   └── index.php     # Point d'entrée unique
+├── storage/         # Fichiers uploadés et cache
+├── database/        # Migrations et seeds
+├── logs/           # Fichiers de logs
+└── vendor/         # Dépendances Composer
+Recommandations pour les Développeurs :
+Toujours utiliser App\Core\ pour les classes principales
+Placer les nouveaux contrôleurs dans app/Controllers/
+Placer les nouveaux modèles dans app/Models/
+Utiliser app/config/ pour toute nouvelle configuration
+Les logs sont dans logs/error.log
+Les fichiers uploadés doivent aller dans storage/
+Toujours passer par le routeur (App\Core\Router) pour les nouvelles routes
+Utiliser le système de vues (App\Core\View) pour le rendu des templates
+Technologies et Dépendances :
+json
+CopyInsert
+{
+  "Frontend": {
+    "jQuery": "3.6.0",
+    "Chart.js": "latest",
+    "Font Awesome": "6.0.0"
+  },
+  "Backend": {
+    "PHP": "^7.4",
+    "MySQL/MariaDB": "via PDO",
+    "Composer": "pour la gestion des dépendances"
+  }
+}
+Prochaines Étapes :
+Nettoyer les dossiers obsolètes
+Consolider les configurations dans app/config/
+Mettre à jour la documentation
+Vérifier et mettre à jour les dépendances
+Implémenter un système de migrations pour la base de données
+Souhaitez-vous que je commence par l'une de ces tâches en particulier ?

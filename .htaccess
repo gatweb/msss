@@ -1,0 +1,26 @@
+# Protection des fichiers sensibles
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protection du dossier d'uploads
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} ^/uploads/.*
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule . - [L]
+</IfModule>
+
+# Configuration des types MIME
+AddType video/mp4 .mp4
+AddType video/webm .webm
+AddType image/jpeg .jpg .jpeg
+AddType image/png .png
+AddType image/gif .gif
+
+# Limite de taille des uploads
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+php_value max_execution_time 300
+php_value max_input_time 300

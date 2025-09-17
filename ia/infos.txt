@@ -1,0 +1,504 @@
+fonction d'amélioration de texte via une API IA dans votre CRM maison PHP/SQLite.
+
+Nous allons structurer cela en plusieurs parties :
+
+1.  **Configuration (API Key & Endpoint)**
+2.  **Backend (PHP pour appel API)**
+3.  **Frontend (HTML/JavaScript pour l'interface)**
+4.  **Database (Structure SQLite)**
+5.  **Intégration et Conseils**
+
+---
+
+### 1. Configuration (`config.php`)
+
+Créez un fichier `config.php` **en dehors de votre dossier web public** (par exemple, un niveau au-dessus de `public_html` ou `www`) ou protégez-le via la configuration de votre serveur web (ex: `.htaccess`). C'est crucial pour la sécurité de votre clé API.
+
+```php
+<?php
+// config.php
+
+// --- Configuration de l'API IA ---
+
+// Choisissez votre fournisseur et décommentez la configuration correspondante
+// Assurez-vous que l'URL de l'endpoint est correcte pour le modèle choisi
+
+// --- Option 1: OpenAI ---
+// define('AI_API_PROVIDER', 'openai');
+// define('AI_API_KEY', 'votre_cle_api_openai_ici'); // Remplacez par votre vraie clé
+// define('AI_API_ENDPOINT', 'https://api.openai.com/v1/chat/completions');
+// define('AI_MODEL', 'gpt-3.5-turbo'); // ou 'gpt-4', 'gpt-4-turbo-preview', etc.
+
+// --- Option 2: Mistral AI ---
+define('AI_API_PROVIDER', 'mistral');
+define('AI_API_KEY', 'votre_cle_api_mistral_ici'); // Remplacez par votre vraie clé
+define('AI_API_ENDPOINT', 'https://api.mistral.ai/v1/chat/completions');
+define('AI_MODEL', 'mistral-small-latest'); // ou 'mistral-medium-latest', 'mistral-large-latest'
+
+// --- Option 3: Groq ---
+// Note: Groq utilise souvent des clés compatibles OpenAI et le même format d'API.
+// Vérifiez leur documentation pour l'endpoint exact.
+// define('AI_API_PROVIDER', 'groq');
+// define('AI_API_KEY', 'votre_cle_api_groq_ici'); // Remplacez par votre vraie clé
+// define('AI_API_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'); // Endpoint Exemple, à vérifier
+// define('AI_MODEL', 'mixtral-8x7b-32768'); // ou 'llama2-70b-4096', etc.
+
+
+// --- Paramètres Généraux ---
+define('API_TIMEOUT_SECONDS', 10); // Timeout pour l'appel cURL
+
+// --- Logging ---
+define('LOG_FILE', __DIR__ . '/../logs/api_errors.log'); // Chemin vers le fichier log (Assurez-vous que le dossier 'logs' existe et est accessible en écriture par PHP)
+
+// Fonction helper pour le logging (Optionnel mais recommandé)
+function log_api_error($message) {
+    $timestamp = date('Y-m-d H:i:s');
+    $logMessage = "[{$timestamp}] - {$message}\n";
+    // Ensure the directory exists
+    $logDir = dirname(LOG_FILE);
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0775, true); // Create directory if it doesn't exist
+    }
+    // Append to the log file
+    error_log($logMessage, 3, LOG_FILE);
+}
+
+// --- Validation ---
+// Assurez-vous qu'une configuration a été choisie et que la clé est définie
+if (!defined('AI_API_KEY') || AI_API_KEY === 'votre_cle_api_xxx_ici' || AI_API_KEY === '') {
+    log_api_error("ERREUR CRITIQUE: Clé API (AI_API_KEY) non configurée dans config.php");
+    // Vous pourriez vouloir arrêter l'exécution ici dans un vrai scénario
+    // die("Erreur de configuration serveur.");
+}
+?>
+```
+
+**Important :**
+* Adaptez les constantes `AI_API_KEY`, `AI_API_ENDPOINT`, et `AI_MODEL` selon le fournisseur que vous choisissez.
+* Assurez-vous que le chemin `LOG_FILE` est correct et que le serveur PHP a les droits d'écriture dans ce fichier/dossier.
+
+---
+
+### 2. Backend (`improve_text_api.php`)
+
+Ce script PHP recevra le texte du frontend, appellera l'API IA et renverra la réponse. Placez ce fichier dans un dossier accessible par votre serveur web.
+
+```php
+<?php
+// improve_text_api.php
+
+// Définir le type de contenu de la réponse comme JSON
+header('Content-Type: application/json');
+
+// Inclure le fichier de configuration sécurisé
+// Ajustez le chemin si nécessaire en fonction de l'emplacement de votre config.php
+require_once __DIR__ . '/../../config/config.php'; // Exemple: si config.php est 2 niveaux au-dessus
+
+// Vérifier si la méthode de requête est POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(['success' => false, 'error' => 'Méthode non autorisée. Utilisez POST.']);
+    exit;
+}
+
+// Récupérer le corps de la requête JSON envoyé par le frontend
+$inputJSON = file_get_contents('php://input');
+$input = json_decode($inputJSON, TRUE); // Convertit en tableau associatif PHP
+
+// Validation basique de l'entrée
+if (!$input || !isset($input['text']) || trim($input['text']) === '') {
+    http_response_code(400); // Bad Request
+    echo json_encode(['success' => false, 'error' => 'Texte manquant ou invalide dans la requête.']);
+    exit;
+}
+
+// Nettoyage très basique (plus de nettoyage peut être nécessaire selon le contexte)
+$originalText = trim($input['text']);
+// Vous pourriez ajouter htmlspecialchars ici si le texte peut contenir du HTML,
+// mais attention à ne pas encoder si l'IA doit comprendre des balises spécifiques.
+// Pour l'envoi à l'IA, le texte brut est généralement préférable.
+// $originalText = htmlspecialchars(trim($input['text']), ENT_QUOTES, 'UTF-8');
+
+// --- Préparation de l'appel API ---
+
+// Construction du prompt pour l'IA
+$prompt = "Améliore ce texte pour le rendre plus professionnel, clair et engageant pour un client, sans changer le fond : \n\n\"" . $originalText . "\"";
+
+// Préparation du payload pour l'API (Format compatible OpenAI Chat Completions)
+$payload = [
+    'model' => AI_MODEL,
+    'messages' => [
+        ['role' => 'system', 'content' => 'Tu es un assistant expert en communication client.'],
+        ['role' => 'user', 'content' => $prompt]
+    ],
+    'max_tokens' => 1000, // Ajustez si nécessaire
+    'temperature' => 0.7, // Contrôle la créativité (0=déterministe, 1=très créatif)
+];
+
+// Initialisation de cURL
+$ch = curl_init();
+
+// Configuration des options cURL
+curl_setopt($ch, CURLOPT_URL, AI_API_ENDPOINT);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Retourne la réponse au lieu de l'afficher
+curl_setopt($ch, CURLOPT_POST, true);           // Méthode POST
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload)); // Données POST en JSON
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . AI_API_KEY
+]);
+curl_setopt($ch, CURLOPT_TIMEOUT, API_TIMEOUT_SECONDS); // Timeout en secondes
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Important pour la sécurité HTTPS
+
+// Exécution de la requête cURL
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // Récupère le code de statut HTTP
+$curlError = curl_error($ch);                    // Récupère les erreurs cURL
+
+// Fermeture de la session cURL
+curl_close($ch);
+
+// --- Gestion de la réponse API ---
+
+$responseData = [];
+
+if ($curlError) {
+    // Erreur cURL (timeout, connexion impossible, etc.)
+    http_response_code(500); // Internal Server Error
+    $errorMessage = "Erreur cURL lors de l'appel API: " . $curlError;
+    log_api_error($errorMessage); // Log l'erreur détaillée
+    $responseData = ['success' => false, 'error' => "Impossible de contacter le service d'amélioration de texte pour le moment. (Code: C1)"];
+} elseif ($httpCode >= 400) {
+    // Erreur HTTP renvoyée par l'API (clé invalide, quota dépassé, mauvaise requête, etc.)
+    http_response_code($httpCode); // Renvoyer le même code d'erreur
+    $apiErrorBody = json_decode($response, true);
+    $apiErrorMessage = isset($apiErrorBody['error']['message']) ? $apiErrorBody['error']['message'] : $response;
+    $errorMessage = "Erreur API (HTTP {$httpCode}): " . $apiErrorMessage;
+    log_api_error($errorMessage); // Log l'erreur détaillée
+    $responseData = ['success' => false, 'error' => "Une erreur s'est produite avec le service d'amélioration. (Code: A{$httpCode})"];
+} else {
+    // Succès de l'appel API
+    $apiResponse = json_decode($response, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        // Erreur lors du décodage de la réponse JSON de l'API
+        http_response_code(500);
+        $errorMessage = "Erreur de décodage JSON de la réponse API: " . json_last_error_msg() . " | Réponse brute: " . substr($response, 0, 500);
+        log_api_error($errorMessage);
+        $responseData = ['success' => false, 'error' => "Réponse invalide reçue du service d'amélioration. (Code: J1)"];
+    } elseif (isset($apiResponse['choices'][0]['message']['content'])) {
+        // Extraction du texte amélioré (structure standard OpenAI)
+        $improvedText = trim($apiResponse['choices'][0]['message']['content']);
+        $responseData = ['success' => true, 'improved_text' => $improvedText];
+    } elseif (isset($apiResponse['error'])) {
+         // L'API a renvoyé un code 2xx mais avec une structure d'erreur dans le JSON
+        http_response_code(500); // Ou un autre code approprié
+        $errorMessage = "Erreur renvoyée dans la réponse API (JSON): " . json_encode($apiResponse['error']);
+        log_api_error($errorMessage);
+        $responseData = ['success' => false, 'error' => "Le service d'amélioration a retourné une erreur interne. (Code: A2)"];
+    }
+    else {
+        // Structure de réponse inattendue
+        http_response_code(500);
+        $errorMessage = "Structure de réponse API inattendue. Réponse brute: " . substr($response, 0, 500);
+        log_api_error($errorMessage);
+        $responseData = ['success' => false, 'error' => "Réponse inattendue reçue du service d'amélioration. (Code: S1)"];
+    }
+}
+
+// Renvoyer la réponse JSON finale au frontend
+echo json_encode($responseData);
+exit;
+
+?>
+```
+
+---
+
+### 3. Frontend (HTML/JavaScript)
+
+Intégrez ce bloc dans votre fiche client ou là où l'utilisateur rédige son message.
+
+```html
+<div id="textEnhancementSection">
+    <h4>Rédiger votre message :</h4>
+    <textarea id="originalMessage" name="message_content" rows="8" style="width: 95%;" placeholder="Écrivez votre message ici..."></textarea>
+    <br>
+    <button type="button" id="improveButton">Améliorer le message</button>
+    <span id="loadingIndicator" style="display: none; margin-left: 10px;">
+        <img src="loading.gif" alt="Chargement..." height="20"> <i>Amélioration en cours...</i>
+    </span>
+    <div id="errorMessage" style="color: red; margin-top: 10px; display: none;"></div>
+
+    <div id="improvedMessageContainer" style="margin-top: 15px; border: 1px solid #ccc; padding: 10px; display: none;">
+        <h4>Suggestion d'amélioration :</h4>
+        <div id="improvedMessageText" style="background-color: #f9f9f9; padding: 8px; min-height: 100px; white-space: pre-wrap;"></div>
+        <div style="margin-top: 10px;">
+            <button type="button" id="useImprovedButton">Utiliser cette version</button>
+            <button type="button" id="useOriginalButton">Garder l'original</button>
+        </div>
+    </div>
+
+    <input type="hidden" id="improvedMessageStorage" name="improved_message_content" value="">
+     <input type="hidden" id="activeVersion" name="active_version" value="original">
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const originalMessageTextarea = document.getElementById('originalMessage');
+    const improveButton = document.getElementById('improveButton');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const improvedMessageContainer = document.getElementById('improvedMessageContainer');
+    const improvedMessageTextDiv = document.getElementById('improvedMessageText');
+    const useImprovedButton = document.getElementById('useImprovedButton');
+    const useOriginalButton = document.getElementById('useOriginalButton');
+    const improvedMessageStorage = document.getElementById('improvedMessageStorage'); // Pour stocker la version améliorée
+    const activeVersionInput = document.getElementById('activeVersion'); // Pour savoir quelle version est affichée
+
+    let currentOriginalText = ''; // Pour pouvoir revenir à l'original
+
+    improveButton.addEventListener('click', function() {
+        const textToImprove = originalMessageTextarea.value.trim();
+        currentOriginalText = textToImprove; // Sauvegarde le texte actuel avant l'appel
+
+        if (!textToImprove) {
+            errorMessageDiv.textContent = 'Veuillez écrire un message avant de demander une amélioration.';
+            errorMessageDiv.style.display = 'block';
+            improvedMessageContainer.style.display = 'none';
+            return;
+        }
+
+        // Réinitialiser l'état
+        errorMessageDiv.style.display = 'none';
+        improvedMessageContainer.style.display = 'none';
+        improvedMessageTextDiv.textContent = '';
+        improvedMessageStorage.value = '';
+        loadingIndicator.style.display = 'inline-block';
+        improveButton.disabled = true; // Désactiver le bouton pendant l'appel
+
+        // Appel AJAX vers le backend PHP
+        fetch('path/to/your/improve_text_api.php', { // <<<--- METTEZ LE BON CHEMIN ICI
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ text: textToImprove })
+        })
+        .then(response => {
+            // Vérifier si la réponse HTTP est OK (status 200-299)
+            if (!response.ok) {
+                // Essayer de lire le corps de l'erreur si possible (pour les erreurs JSON du backend)
+                return response.json().then(errData => {
+                    throw new Error(errData.error || `Erreur HTTP ${response.status}`);
+                }).catch(() => {
+                    // Si le corps n'est pas JSON ou vide, lancer une erreur générique
+                     throw new Error(`Erreur HTTP ${response.status}`);
+                });
+            }
+            return response.json(); // Convertir la réponse en JSON
+        })
+        .then(data => {
+            if (data.success && data.improved_text) {
+                improvedMessageTextDiv.textContent = data.improved_text; // Afficher le texte amélioré
+                improvedMessageStorage.value = data.improved_text; // Stocker pour sauvegarde éventuelle
+                improvedMessageContainer.style.display = 'block'; // Afficher le conteneur
+                // Ici, vous pourriez décider de remplacer directement le textarea original
+                // ou de laisser l'utilisateur choisir avec les boutons.
+                // L'exemple actuel utilise les boutons.
+            } else {
+                // Afficher l'erreur renvoyée par le script PHP
+                throw new Error(data.error || 'Une erreur inconnue est survenue.');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'appel API:', error);
+            errorMessageDiv.textContent = 'Erreur: ' + error.message;
+            errorMessageDiv.style.display = 'block';
+        })
+        .finally(() => {
+            // Toujours exécuté, que l'appel réussisse ou échoue
+            loadingIndicator.style.display = 'none'; // Cacher l'indicateur
+            improveButton.disabled = false; // Réactiver le bouton
+        });
+    });
+
+    // Gérer le clic sur "Utiliser cette version"
+    useImprovedButton.addEventListener('click', function() {
+        const improvedText = improvedMessageTextDiv.textContent;
+        originalMessageTextarea.value = improvedText; // Met à jour le textarea principal
+        activeVersionInput.value = 'improved';
+        // Optionnel: Cacher à nouveau le bloc de suggestion après sélection
+        // improvedMessageContainer.style.display = 'none';
+        alert("Le message amélioré a été appliqué au champ principal.");
+    });
+
+    // Gérer le clic sur "Garder l'original" (ou réinitialiser)
+    useOriginalButton.addEventListener('click', function() {
+        originalMessageTextarea.value = currentOriginalText; // Restaure le texte d'origine
+        activeVersionInput.value = 'original';
+        improvedMessageContainer.style.display = 'none'; // Cache le bloc de suggestion
+        improvedMessageStorage.value = ''; // Vide le stockage amélioré
+        alert("Le message original a été restauré.");
+    });
+
+    // Optionnel: Cacher la suggestion si l'utilisateur modifie à nouveau le textarea principal
+    originalMessageTextarea.addEventListener('input', function() {
+        if (improvedMessageContainer.style.display !== 'none') {
+            improvedMessageContainer.style.display = 'none';
+            activeVersionInput.value = 'original'; // L'utilisateur modifie => revient à considérer comme original
+            improvedMessageStorage.value = ''; // Vide le stockage amélioré car l'original a changé
+        }
+    });
+
+});
+</script>
+
+<style>
+/* Style optionnel pour l'indicateur de chargement et les messages */
+#loadingIndicator i {
+    font-style: normal;
+    color: #555;
+}
+#errorMessage {
+    font-weight: bold;
+}
+#improvedMessageContainer {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+#improvedMessageText {
+    border: 1px dashed #aaa;
+    background-color: #fff; /* Fond blanc pour le texte suggéré */
+}
+</style>
+```
+
+**Points Clés du Frontend :**
+
+* **AJAX avec `Workspace` :** Envoie les données au script PHP sans recharger la page.
+* **Indicateur de chargement :** Affiche une animation pendant l'attente. Utilisez une petite image GIF ou une animation CSS.
+* **Gestion des erreurs :** Affiche les erreurs renvoyées par le script PHP ou les erreurs réseau.
+* **Affichage conditionnel :** Le conteneur de suggestion n'apparaît que lorsqu'une suggestion est disponible.
+* **Choix utilisateur :** Les boutons permettent de choisir quelle version intégrer dans le `textarea` principal.
+* **Réinitialisation :** Le bouton "Garder l'original" ou la modification manuelle du `textarea` restaure l'état initial ou cache la suggestion.
+* **Stockage caché :** Le champ `improvedMessageStorage` conserve le texte amélioré, et `activeVersionInput` indique quelle version est actuellement dans le `textarea`. Vous utiliserez ces champs lors de la sauvegarde finale dans SQLite.
+
+---
+
+### 4. Database (Structure SQLite)
+
+Vous aurez besoin d'une table pour stocker les messages. Voici un exemple de structure. Vous pouvez exécuter cette commande SQL via un outil d'administration SQLite ou via PHP (`SQLite3::exec`).
+
+```sql
+CREATE TABLE IF NOT EXISTS crm_messages (
+    message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL, -- Référence à l'ID du client dans votre table 'customers'
+    original_text TEXT NOT NULL,   -- Le texte tel qu'écrit initialement par l'utilisateur
+    enhanced_text TEXT NULL,       -- Le texte amélioré par l'IA (peut être NULL si non généré ou non utilisé)
+    selected_version TEXT NOT NULL DEFAULT 'original', -- Quelle version a été finalement choisie ('original' ou 'enhanced')
+    final_text_used TEXT NOT NULL, -- Le texte qui a été effectivement utilisé/envoyé
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- Date de création/enregistrement
+    -- Ajoutez d'autres champs si nécessaire (ex: user_id, status, type de message)
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) -- Adaptez 'customers(customer_id)' à votre table client
+);
+
+-- Optionnel: Index pour améliorer les recherches par client
+CREATE INDEX IF NOT EXISTS idx_crm_messages_customer_id ON crm_messages (customer_id);
+```
+
+**Logique de Sauvegarde (en PHP, côté serveur, lors de la soumission du formulaire CRM) :**
+
+Lorsque l'utilisateur soumet le formulaire contenant le message (par exemple, pour l'enregistrer comme note ou l'envoyer), votre script PHP de traitement de formulaire devrait :
+
+1.  Récupérer `$_POST['message_content']` (le contenu final du textarea).
+2.  Récupérer `$_POST['improved_message_content']` (le contenu du champ caché de suggestion).
+3.  Récupérer `$_POST['active_version']` (le champ caché indiquant si 'original' ou 'improved' est dans le textarea).
+4.  Récupérer `$_POST['customer_id']` ou l'ID client pertinent.
+
+```php
+<?php
+// Extrait du script PHP qui traite la sauvegarde du message dans le CRM
+
+// ... (Connexion à la base de données SQLite) ...
+// $db = new SQLite3('path/to/your/crm_database.sqlite');
+
+// Supposons que vous ayez récupéré les données POST
+$customerId = filter_input(INPUT_POST, 'customer_id', FILTER_VALIDATE_INT); // Exemple
+$finalTextUsed = trim($_POST['message_content'] ?? ''); // Le texte dans le textarea au moment de la soumission
+$improvedTextSuggestion = trim($_POST['improved_message_content'] ?? ''); // La suggestion IA stockée
+$activeVersion = $_POST['active_version'] ?? 'original'; // Quelle version était active
+
+// Déterminer le texte original. C'est un peu délicat ici.
+// Si l'utilisateur a cliqué "améliorer" puis "garder l'original", on n'a plus l'original initial dans un champ séparé.
+// Solution 1: Ajouter un champ caché <input type="hidden" id="initialOriginalText"> rempli au chargement de la page.
+// Solution 2: Si activeVersion == 'original', considérer finalTextUsed comme l'original. Si 'improved', il faut retrouver l'original.
+// Solution la plus simple pour cette démo: stocker l'original basé sur l'état final.
+$originalTextToStore = '';
+if ($activeVersion === 'original') {
+    $originalTextToStore = $finalTextUsed;
+     // Pas de suggestion améliorée pertinente si l'original est utilisé et potentiellement modifié après suggestion
+    $enhancedTextToStore = ($finalTextUsed === $currentOriginalText) ? $improvedTextSuggestion : null;
+} else { // activeVersion === 'improved'
+    // Il faut retrouver l'original qui a mené à cette suggestion.
+    // Cela nécessiterait de passer l'original via un autre champ caché ou de le stocker temporairement.
+    // Pour simplifier, on va stocker l'original qui était présent *avant* de cliquer sur "améliorer".
+    // On suppose qu'il est passé dans un champ caché 'initial_original_text' rempli par JS au moment du clic sur "améliorer".
+    $initialOriginalText = trim($_POST['initial_original_text'] ?? ''); // NECESSITE AJOUT DANS LE JS/HTML
+    $originalTextToStore = $initialOriginalText;
+    $enhancedTextToStore = $finalTextUsed; // Car la version améliorée est celle utilisée
+}
+
+
+// Validation simple
+if (empty($customerId) || empty($finalTextUsed)) {
+    die("Erreur: ID Client ou message manquant.");
+}
+
+
+// Préparer la requête d'insertion
+$stmt = $db->prepare("INSERT INTO crm_messages (customer_id, original_text, enhanced_text, selected_version, final_text_used)
+                      VALUES (:customer_id, :original_text, :enhanced_text, :selected_version, :final_text_used)");
+
+$stmt->bindValue(':customer_id', $customerId, SQLITE3_INTEGER);
+$stmt->bindValue(':original_text', $originalTextToStore, SQLITE3_TEXT);
+$stmt->bindValue(':enhanced_text', $enhancedTextToStore, SQLITE3_TEXT); // Peut être NULL
+$stmt->bindValue(':selected_version', $activeVersion, SQLITE3_TEXT);
+$stmt->bindValue(':final_text_used', $finalTextUsed, SQLITE3_TEXT);
+
+// Exécuter la requête
+$result = $stmt->execute();
+
+if ($result) {
+    echo "Message enregistré avec succès.";
+    // Redirection ou autre action post-sauvegarde
+} else {
+    echo "Erreur lors de l'enregistrement du message: " . $db->lastErrorMsg();
+    // Log de l'erreur BDD
+}
+
+// ... (Fermeture de la connexion BDD) ...
+// $db->close();
+
+?>
+```
+*Note :* La logique de récupération de l'`original_text` exact pour la sauvegarde demande une petite adaptation du JS/HTML pour stocker l'original initial au moment du clic sur "Améliorer".
+
+---
+
+### 5. Intégration et Conseils
+
+* **Chemins :** Assurez-vous que les chemins dans `require_once` (PHP) et `Workspace` (JS) sont corrects par rapport à la structure de vos fichiers.
+* **Sécurité Clé API :** Répétons-le, ne mettez JAMAIS votre clé API directement dans le code source accessible publiquement ou dans un fichier sous la racine web sans protection. Utilisez `config.php` en dehors ou protégez-le. Les variables d'environnement sont une autre option solide si votre hébergement le permet.
+* **Fournisseurs API :**
+    * **OpenAI / Mistral / Groq (format OpenAI) :** Le code PHP fourni utilise le format de l'API Chat Completions d'OpenAI, qui est devenu un standard de facto adopté par de nombreux autres fournisseurs (Mistral, Groq, Together AI, etc.). Vous devriez pouvoir l'utiliser avec ces services en changeant simplement `AI_API_KEY`, `AI_API_ENDPOINT`, et `AI_MODEL` dans `config.php`. Vérifiez toujours la documentation spécifique du fournisseur pour les endpoints et modèles exacts.
+    * **Autres Formats :** Si vous utilisez une API avec un format différent, vous devrez adapter la structure `$payload` et la manière d'extraire la réponse (`$improvedText = ...`) dans `improve_text_api.php`.
+* **Gestion des Coûts :** Les appels API IA sont payants (sauf pour certains paliers gratuits ou API spécifiques comme Groq actuellement). Mettez en place des mécanismes pour suivre votre consommation et éventuellement limiter le nombre d'appels par utilisateur ou par jour si nécessaire.
+* **Robustesse :** Ajoutez plus de validation des entrées si nécessaire. La gestion d'erreur actuelle couvre les cas courants, mais vous pouvez l'affiner.
+* **Expérience Utilisateur :** L'indicateur de chargement est essentiel car les appels IA peuvent prendre quelques secondes. Le feedback clair (succès, erreur, suggestion appliquée) améliore l'expérience.
+* **Mode Debug/Log :** La fonction `log_api_error` dans `config.php` écrit les erreurs dans un fichier. C'est utile pour diagnostiquer les problèmes sans les exposer à l'utilisateur final. Assurez-vous que le fichier log n'est pas publiquement accessible.
+* **Alternative Frontend :** Si vous préférez, au lieu d'afficher la suggestion dans un bloc séparé, vous pourriez directement remplacer le contenu du `textarea` original et ajouter un bouton "Annuler" ou "Rétablir l'original" qui utiliserait la variable `currentOriginalText` sauvegardée en JS.
+
+Ce setup vous donne une base solide et fonctionnelle pour intégrer l'amélioration de texte par IA dans votre CRM. Adaptez les chemins, la configuration et éventuellement la logique de sauvegarde à votre structure existante.

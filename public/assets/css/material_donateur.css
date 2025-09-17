@@ -1,0 +1,134 @@
+/* Material Mystique Theme for Donateurs */
+:root {
+  --primary: #512da8; /* Deep purple */
+  --primary-dark: #14002b;
+  --accent: #00bcd4; /* Cyan accent */
+  --bg: #f3e8fd;
+  --surface: #fff;
+  --on-primary: #fff;
+  --on-surface: #222;
+  --sidebar-gradient: linear-gradient(135deg, #512da8 0%, #00bcd4 100%);
+}
+
+body, .dashboard-main {
+  background: var(--bg);
+}
+.dashboard-sidebar {
+  background: var(--sidebar-gradient);
+  color: var(--on-primary);
+  box-shadow: 2px 0 8px #512da840;
+}
+.dashboard-sidebar .sidebar-header {
+  background: transparent;
+  text-align: center;
+  padding: 2rem 1rem 1rem 1rem;
+}
+.dashboard-sidebar .profile-pic {
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  width: 70px;
+  box-shadow: 0 2px 12px #512da840;
+}
+.nav-section-title {
+  color: var(--accent);
+  margin-top: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.nav-item {
+  color: var(--on-primary);
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px 30px 10px 30px;
+  margin-bottom: 0.2rem;
+  transition: background 0.2s;
+}
+.nav-item.active, .nav-item:hover {
+  background: #e1bee7;
+  color: var(--primary-dark);
+}
+.dashboard-topbar {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 2px 8px #512da840;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 2rem;
+}
+.dashboard-topbar .btn-outline {
+  border: 2px solid var(--accent);
+  color: var(--on-primary);
+  background: transparent;
+  border-radius: 20px;
+  padding: 0.3rem 1.2rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.dashboard-topbar .btn-outline:hover {
+  background: var(--accent);
+  color: var(--primary-dark);
+}
+.dashboard-footer {
+  background: var(--primary-dark);
+  color: var(--on-primary);
+  text-align: center;
+  padding: 1.2rem 0 1.2rem 0;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  margin-top: 2rem;
+  box-shadow: 0 -2px 12px #512da840;
+}
+
+/* Cards, stats, etc. */
+.stat-card {
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #512da840;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  color: var(--on-surface);
+  border: 2px solid #b39ddb;
+}
+.stat-icon {
+  color: var(--primary);
+  font-size: 2.3rem;
+}
+.page-title {
+  font-family: 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--accent);
+  margin: 0;
+}
+
+/* Buttons */
+.btn, .btn-outline, .btn-icon {
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 1rem;
+  border-radius: 24px;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.btn:hover {
+  background: var(--accent);
+  color: var(--primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-sidebar {
+    width: 60px;
+    min-width: 60px;
+  }
+  .dashboard-sidebar .sidebar-header h2,
+  .dashboard-sidebar .nav-section-title,
+  .dashboard-sidebar .nav-item span {
+    display: none;
+  }
+}

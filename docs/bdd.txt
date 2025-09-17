@@ -1,0 +1,24 @@
+Base de données Msss
+======================
+
+Technologie : SQLite3 (via PDO)
+Version : 3+
+
+Accès Base de données
+--------------------
+Fichier : /msss/database.sqlite
+Pas d'authentification nécessaire (fichier local)
+
+Tables principales
+----------------
+- creators (utilisateurs/créatrices)
+- donations (dons)
+- packs (packs de contenus)
+- creator_links (liens des profils)
+- social_links (liens sociaux)
+
+Note : Les identifiants ci-dessus sont des exemples. Pour la sécurité, il est recommandé de :
+1. Utiliser des mots de passe forts et uniques
+2. Limiter les privilèges de l'utilisateur de base de données
+3. Ne pas exposer ce fichier publiquement
+4. Utiliser des variables d'environnement pour les credentials en production
