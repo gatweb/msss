@@ -65,47 +65,31 @@ class BaseController {
      */
     protected function render($view, $data = [], $layout = 'default') {
         try {
-            // S'assurer que flash est toujours disponible
             if (!isset($data['flash'])) {
                 $data['flash'] = $this->flash;
             }
-            // Ajouter le titre à $data si défini dans la vue
-            if ($this->view->getTitle()) {
+
+            if ($this->view->getTitle() && empty($data['pageTitle'])) {
                 $data['pageTitle'] = $this->view->getTitle();
             }
-            
-            // Ajouter les scripts à $data si définis dans la vue
-            if (!empty($this->view->getScripts())) {
-                $data['scripts'] = $this->view->getScripts();
+
+            $scripts = $this->view->getScripts();
+            if (!empty($scripts)) {
+                $data['scripts'] = $scripts;
             }
-            
-            // Passer l'objet flash à la vue
-            $data['flash'] = $this->flash;
-            
-            $this->view->setData($data);
-            $content = $this->view->render($view);
-            
-            if ($layout) {
-                $layoutPath = APP_PATH . "/views/layouts/{$layout}.php";
-                if (!file_exists($layoutPath)) {
-                    throw new \Exception("Layout {$layout} non trouvé");
-                }
-                
-                $layoutData = array_merge($data, ['content' => $content]);
-                $this->view->setData($layoutData);
-                
-                ob_start();
-                extract($layoutData);
-                require $layoutPath;
-                $finalContent = ob_get_clean();
-                
-                echo $finalContent;
-            } else {
-                echo $content;
+
+            if (!isset($data['dailyTip']) && property_exists($this, 'dailyTip') && $this->dailyTip !== null) {
+                $data['dailyTip'] = $this->dailyTip;
             }
-        } catch (\Exception $e) {
-            error_log("Erreur lors du rendu de la vue : " . $e->getMessage());
-            if (APP_DEBUG) {
+
+            if (!isset($data['creator']) && property_exists($this, 'creator') && $this->creator !== null) {
+                $data['creator'] = $this->creator;
+            }
+
+            $this->view->render($view, $data, $layout);
+        } catch (\Throwable $e) {
+            error_log('Erreur lors du rendu de la vue : ' . $e->getMessage());
+            if (defined('APP_DEBUG') && APP_DEBUG) {
                 throw $e;
             }
             require APP_PATH . '/views/errors/500.php';
