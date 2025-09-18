@@ -5,13 +5,24 @@ namespace App\Services;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Webhook;
 
 class StripeService {
     private $config;
+    /** @var callable */
+    private $sessionFactory;
+    /** @var callable */
+    private $webhookConstructor;
+    /** @var callable */
+    private $apiKeySetter;
 
-    public function __construct() {
-        $this->config = require_once __DIR__ . '/../config/stripe.php';
-        Stripe::setApiKey($this->config['secret_key']);
+    public function __construct(?array $config = null, ?callable $sessionFactory = null, ?callable $webhookConstructor = null, ?callable $apiKeySetter = null) {
+        $this->config = $config ?? require __DIR__ . '/../config/stripe.php';
+        $this->sessionFactory = $sessionFactory ?? [Session::class, 'create'];
+        $this->webhookConstructor = $webhookConstructor ?? [Webhook::class, 'constructEvent'];
+        $this->apiKeySetter = $apiKeySetter ?? [Stripe::class, 'setApiKey'];
+
+        call_user_func($this->apiKeySetter, $this->config['secret_key']);
     }
 
     /**
@@ -25,7 +36,7 @@ class StripeService {
      */
     public function createCheckoutSession(float $amount, int $creatorId, string $donorEmail): array {
         try {
-            $session = Session::create([
+            $session = call_user_func($this->sessionFactory, [
                 'payment_method_types' => $this->config['payment_methods'],
                 'customer_email' => $donorEmail,
                 'line_items' => [[
@@ -70,7 +81,8 @@ class StripeService {
      */
     public function handleWebhook(string $payload, string $sigHeader): array {
         try {
-            $event = \Stripe\Webhook::constructEvent(
+            $event = call_user_func(
+                $this->webhookConstructor,
                 $payload,
                 $sigHeader,
                 $this->config['webhook_secret']
