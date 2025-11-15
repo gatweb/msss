@@ -12,6 +12,87 @@ class Creator extends BaseModel {
     public function __construct($pdo = null) {
         parent::__construct($pdo);
     }
+
+    public function createCreator(array $data) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $name = trim($data['name'] ?? '');
+            $email = strtolower(trim($data['email'] ?? ''));
+            $username = $data['username'] ?? $this->generateUniqueUsername($name !== '' ? $name : $email);
+            $isActive = !empty($data['is_active']);
+            $isAdmin = !empty($data['is_admin']);
+
+            $status = $isActive ? 'active' : 'pending';
+            $role = $isAdmin ? 'admin' : 'creator';
+
+            $stmt = $this->pdo->prepare("
+                INSERT INTO creators (
+                    name, username, email, password, tagline, bio, donation_goal,
+                    status, role, is_active, is_admin, verification_token,
+                    profile_pic_url, banner_url, remember_token, remember_token_expires,
+                    reset_token, reset_token_expires, last_login
+                ) VALUES (
+                    :name, :username, :email, :password, :tagline, :bio, :donation_goal,
+                    :status, :role, :is_active, :is_admin, :verification_token,
+                    :profile_pic_url, :banner_url, NULL, NULL,
+                    NULL, NULL, NULL
+                )
+            ");
+
+            $stmt->execute([
+                'name' => $name,
+                'username' => $username,
+                'email' => $email,
+                'password' => $data['password'],
+                'tagline' => $data['tagline'] ?? null,
+                'bio' => $data['bio'] ?? null,
+                'donation_goal' => $data['donation_goal'] ?? 0,
+                'status' => $status,
+                'role' => $role,
+                'is_active' => $isActive ? 1 : 0,
+                'is_admin' => $isAdmin ? 1 : 0,
+                'verification_token' => $data['verification_token'] ?? null,
+                'profile_pic_url' => $data['profile_pic_url'] ?? null,
+                'banner_url' => $data['banner_url'] ?? null,
+            ]);
+
+            $creatorId = (int)$this->pdo->lastInsertId();
+            $this->pdo->commit();
+
+            return $creatorId;
+        } catch (\PDOException $e) {
+            $this->pdo->rollBack();
+            error_log("Erreur lors de la création du créateur : " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function generateUniqueUsername(string $value): string {
+        $base = strtolower($value);
+        $base = preg_replace('/[^a-z0-9]+/', '-', $base);
+        $base = trim($base, '-');
+
+        if ($base === '') {
+            $base = 'creator';
+        }
+
+        $username = $base;
+        $suffix = 1;
+
+        while ($this->usernameExists($username)) {
+            $username = $base . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $username;
+    }
+
+    private function usernameExists(string $username): bool {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM creators WHERE username = :username LIMIT 1");
+        $stmt->execute(['username' => $username]);
+        return (bool) $stmt->fetchColumn();
+    }
     
     public function updateProfile($id, $data) {
         try {

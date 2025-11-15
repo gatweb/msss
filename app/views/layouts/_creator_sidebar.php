@@ -1,64 +1,41 @@
 <?php
 $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
 
-// Fonction helper pour déterminer si un lien est actif
-function isSidebarLinkActive($uri, $currentUri, $matchExact = false) {
-    if ($matchExact) {
-        return $uri === $currentUri;
-    }
-    // Considère actif si l'URI actuel commence par l'URI du lien
-    // Ex: /dashboard/links est actif si $currentUri est /dashboard/links ou /dashboard/links/edit/123
-    // Sauf pour la racine '/' ou '/dashboard' qui doit être exact ou correspondre à /dashboard/stats
-    if ($uri === '/dashboard') {
-        return $currentUri === '/dashboard' || strpos($currentUri, '/dashboard/stats') === 0;
-    }
-    if ($uri === '/') return $currentUri === '/';
+$links = [
+    ['/dashboard', 'Tableau de bord', 'bi bi-grid-1x2-fill'],
+    ['/dashboard/stats', 'Statistiques', 'bi bi-graph-up'],
+    ['/dashboard/links', 'Mes liens', 'bi bi-link-45deg'],
+    ['/dashboard/ai-tools', 'Outils IA', 'bi bi-stars'],
+    ['/dashboard/settings', 'Paramètres', 'bi bi-gear-fill'],
+];
 
-    return strpos($currentUri, $uri) === 0;
-}
+$currentCreator = $creator ?? [];
+$publicUsername = $currentCreator['username'] ?? ($_SESSION['creator_username'] ?? null);
+$publicUrl = $publicUsername ? '/creator/' . rawurlencode($publicUsername) : '/';
 ?>
-<nav class="creator-sidebar border-end bg-light">
-    <div class="sidebar-sticky d-flex flex-column min-vh-100 p-3">
-        <h5 class="mb-3">Menu Créateur</h5>
-        <ul class="nav flex-column mb-auto">
-            <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/dashboard', $currentUri) ? 'active' : '' ?>" href="/dashboard">
-                    <i class="bi bi-grid-1x2-fill me-2"></i> Tableau de Bord
+<nav class="creator-sidebar">
+    <h5>Navigation</h5>
+    <ul class="nav-list">
+        <?php foreach ($links as [$href, $label, $icon]): ?>
+            <?php $isActive = str_starts_with($currentUri, $href); ?>
+            <li>
+                <a class="nav-item<?= $isActive ? ' active' : '' ?>" href="<?= $href ?>">
+                    <i class="<?= $icon ?>"></i>
+                    <?= htmlspecialchars($label) ?>
                 </a>
             </li>
-             <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/dashboard/stats', $currentUri) ? 'active' : '' ?>" href="/dashboard/stats">
-                    <i class="bi bi-graph-up me-2"></i> Statistiques
-                </a>
-            </li>
-             <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/dashboard/links', $currentUri) ? 'active' : '' ?>" href="/dashboard/links">
-                    <i class="bi bi-link-45deg me-2"></i> Mes Liens
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/dashboard/ai-tools', $currentUri) ? 'active' : '' ?>" href="/dashboard/ai-tools">
-                    <i class="bi bi-stars me-2"></i> Outils IA
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/dashboard/settings', $currentUri) ? 'active' : '' ?>" href="/dashboard/settings">
-                     <i class="bi bi-gear-fill me-2"></i> Paramètres
-                </a>
-            </li>
-             <li class="nav-item">
-                <a class="nav-link <?= isSidebarLinkActive('/creator/public', $currentUri, true) ? 'active' : '' ?>" href="/creator/public" target="_blank">
-                     <i class="bi bi-eye-fill me-2"></i> Voir Page Publique
-                </a>
-            </li>
-        </ul>
-        <hr>
-        <ul class="nav flex-column">
-             <li class="nav-item">
-                 <a class="nav-link text-danger" href="/logout">
-                    <i class="bi bi-box-arrow-right me-2"></i> Déconnexion
-                </a>
-            </li>
-        </ul>
+        <?php endforeach; ?>
+        <li>
+            <a class="nav-item" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank">
+                <i class="bi bi-eye-fill"></i>
+                Voir page publique
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <a class="nav-item" href="/logout">
+            <i class="bi bi-box-arrow-right"></i>
+            Déconnexion
+        </a>
     </div>
 </nav>
