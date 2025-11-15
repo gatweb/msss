@@ -13,11 +13,9 @@ if (session_status() === PHP_SESSION_NONE) {
     
     <!-- CSS -->
     <link rel="stylesheet" href="/assets/css/common.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <header class="admin-header" style="background:#fff;box-shadow:0 4px 24px #0001;padding-bottom:0.5em;">

@@ -1,56 +1,68 @@
 <?php
-// config.php
 
-// --- Configuration de l'API IA ---
+use Dotenv\Dotenv;
 
-// Choisissez votre fournisseur et décommentez la configuration correspondante
-// Assurez-vous que l'URL de l'endpoint est correcte pour le modèle choisi
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', dirname(__DIR__));
+}
 
-// --- Option 1: OpenAI ---
-// define('AI_API_PROVIDER', 'openai');
-// define('AI_API_KEY', 'votre_cle_api_openai_ici'); // Remplacez par votre vraie clé
-// define('AI_API_ENDPOINT', 'https://api.openai.com/v1/chat/completions');
-// define('AI_MODEL', 'gpt-3.5-turbo'); // ou 'gpt-4', 'gpt-4-turbo-preview', etc.
+$autoload = BASE_PATH . '/vendor/autoload.php';
+if (file_exists($autoload)) {
+    require_once $autoload;
+}
 
-// --- Option 2: Mistral AI ---
-define('AI_API_PROVIDER', 'mistral');
-define('AI_API_KEY', 'wUJZGG4WfMddqBNlEbAlOjyWOPjXn1SA'); // Remplacez par votre vraie clé
-define('AI_API_ENDPOINT', 'https://api.mistral.ai/v1/chat/completions');
-define('AI_MODEL', 'mistral-small-latest'); // ou 'mistral-medium-latest', 'mistral-large-latest'
+if (class_exists(Dotenv::class) && file_exists(BASE_PATH . '/.env')) {
+    Dotenv::createImmutable(BASE_PATH)->safeLoad();
+}
 
-// --- Option 3: Groq ---
-// Note: Groq utilise souvent des clés compatibles OpenAI et le même format d'API.
-// Vérifiez leur documentation pour l'endpoint exact.
-// define('AI_API_PROVIDER', 'groq');
-// define('AI_API_KEY', 'votre_cle_api_groq_ici'); // Remplacez par votre vraie clé
-// define('AI_API_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'); // Endpoint Exemple, à vérifier
-// define('AI_MODEL', 'mixtral-8x7b-32768'); // ou 'llama2-70b-4096', etc.
-
-
-// --- Paramètres Généraux ---
-define('API_TIMEOUT_SECONDS', 10); // Timeout pour l'appel cURL
-
-// --- Logging ---
-define('LOG_FILE', __DIR__ . '/../storage/logs/api_errors.log'); // Chemin vers le fichier log spécifique à l'API IA
-
-// Fonction helper pour le logging (Optionnel mais recommandé)
-function log_api_error($message) {
-    $timestamp = date('Y-m-d H:i:s');
-    $logMessage = "[{$timestamp}] - {$message}\n";
-    // Ensure the directory exists
-    $logDir = dirname(LOG_FILE);
-    if (!is_dir($logDir)) {
-        mkdir($logDir, 0775, true); // Create directory if it doesn't exist
+$env = static function (string $key, $default = null) {
+    if (array_key_exists($key, $_ENV)) {
+        return $_ENV[$key];
     }
-    // Append to the log file
-    error_log($logMessage, 3, LOG_FILE);
+
+    $value = getenv($key);
+    return $value !== false ? $value : $default;
+};
+
+$provider = $env('AI_API_PROVIDER', defined('AI_API_PROVIDER') ? AI_API_PROVIDER : 'mistral');
+$apiKey = $env('AI_API_KEY', defined('AI_API_KEY') ? AI_API_KEY : '');
+$endpoint = $env('AI_API_ENDPOINT', defined('AI_API_ENDPOINT') ? AI_API_ENDPOINT : 'https://api.mistral.ai/v1/chat/completions');
+$model = $env('AI_MODEL', defined('AI_MODEL') ? AI_MODEL : 'mistral-small-latest');
+
+if (!defined('AI_API_PROVIDER')) {
+    define('AI_API_PROVIDER', $provider);
+}
+if (!defined('AI_API_KEY')) {
+    define('AI_API_KEY', $apiKey);
+}
+if (!defined('AI_API_ENDPOINT')) {
+    define('AI_API_ENDPOINT', $endpoint);
+}
+if (!defined('AI_MODEL')) {
+    define('AI_MODEL', $model);
 }
 
-// --- Validation ---
-// Assurez-vous qu'une configuration a été choisie et que la clé est définie
-if (!defined('AI_API_KEY') || AI_API_KEY === 'wUJZGG4WfMddqBNlEbAlOjyWOPjXn1SA' || AI_API_KEY === '') {
-    log_api_error("ERREUR CRITIQUE: Clé API (AI_API_KEY) non configurée dans config.php");
-    // Vous pourriez vouloir arrêter l'exécution ici dans un vrai scénario
-    // die("Erreur de configuration serveur.");
+if (!defined('API_TIMEOUT_SECONDS')) {
+    define('API_TIMEOUT_SECONDS', 10);
 }
-?>
+
+if (!defined('LOG_FILE')) {
+    define('LOG_FILE', BASE_PATH . '/storage/logs/api_errors.log');
+}
+
+if (!function_exists('log_api_error')) {
+    function log_api_error(string $message): void
+    {
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[{$timestamp}] - {$message}\n";
+        $logDir = dirname(LOG_FILE);
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0775, true);
+        }
+        error_log($logMessage, 3, LOG_FILE);
+    }
+}
+
+if (empty(AI_API_KEY)) {
+    log_api_error('ERREUR CRITIQUE: Clé API (AI_API_KEY) non configurée.');
+}

@@ -1,858 +1,204 @@
-/* --- Root Variables (si nécessaire) --- */
-:root {
-    --primary-color: #007bff; /* Bleu primaire */
-    --primary-color-light: #e6f2ff; /* Bleu très clair pour hover/active */
-    --primary-color-lightest: #f0f7ff; /* Encore plus clair pour fonds doux */
-    --secondary-color: #6c757d; /* Gris secondaire */
-    --success-color: #28a745; /* Vert succès */
-    --danger-color: #dc3545; /* Rouge danger */
-    --warning-color: #ffc107; /* Jaune avertissement */
-    --info-color: #17a2b8; /* Cyan info */
-
-    --background-color: #f6f2f700; /* Fond principal blanc */
-    --background-color-light: #f8f9fa; /* Fond légèrement grisé */
-    --text-color: #343a40; /* Texte principal foncé */
-    --text-color-strong: #212529; /* Texte plus foncé/titres */
-    --muted-text: #6c757d; /* Texte estompé/secondaire */
-    --border-color: #dee2e6; /* Couleur des bordures */
-
-    --border-radius: 0.3rem;
-    --border-radius-small: 0.2rem;
-    --border-radius-large: 0.5rem;
-    --shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-    --header-height: 60px; /* Hauteur du header */
-    --sidebar-width: 250px; /* Largeur de la sidebar (si utilisée) */
-    --primary-darker: #8a6df7;
-    --secondary-darker: #5a6268;
-    --success-darker: #218838;
-}
-
-/* --- Layout Général Dashboard --- */
-
-/* Correctif : Empêche le débordement vertical de .row dans .creator-content */
-.creator-content > .row {
-    margin-right: 0;
-    margin-left: 0;
-}
-
-@media (min-width: 768px) {
-    #main-wrapper {
-        min-height: calc(100vh - 56px); /* Ajuster selon la hauteur du header */
-    }
-    .creator-sidebar {
-        min-height: calc(100vh - 56px);
-    }
-    .creator-content {
-        min-height: calc(100vh - 56px);
-        flex-grow: 1;
-    }
-}
-
-@media (max-width: 767px) {
-    #main-wrapper {
-        flex-direction: column;
-    }
-    .creator-sidebar {
-        width: 100%;
-        min-height: auto;
-        order: 2;
-    }
-    .creator-content {
-        order: 1;
-    }
-}
-
+/*
+ |--------------------------------------------------------------------------
+ | Spécificités dashboard créatrice / admin
+ |--------------------------------------------------------------------------
+ | Cette feuille complète la base commune définie dans common.css avec
+ | l'architecture de navigation latérale, les widgets statistiques et
+ | certaines animations propres au tableau de bord.
+ */
 
 .creator-dashboard {
-    background: #f6f2f7; /* Uniformise le fond comme sur le dashboard */
+    background: var(--background-color);
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
 }
 
 .creator-header {
-    background: rgba(255,255,255,0.9);
-    box-shadow: 0 2px 16px rgba(44,62,80,0.07);
-    border-radius: 18px;
-    margin: 12px auto 0 auto;
-    padding: 0 2rem;
-    max-width: 1400px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.creator-dashboard .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    width: 100%;
-    flex-wrap: nowrap;
-    background: none;
-    margin: 0;
-    box-shadow: none;
-    border-radius: 0;
-}
-
-.creator-dashboard .logo {
-    flex-shrink: 0;
-}
-
-.creator-dashboard .logo img {
-    height: 40px;
-    display: block;
-}
-
-.creator-dashboard .main-nav {
-    display: flex;
-    /* pas de flex-grow ni de margin parasite */
-}
-
-.main-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 1.5rem;
-}
-
-.main-nav a {
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: 500;
-    padding: 0.5rem 0.8rem;
-    border-radius: var(--border-radius-small);
-    transition: background-color 0.2s, color 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.main-nav a:hover {
-    background-color: var(--primary-color-lightest);
-    color: var(--primary-color);
-}
-
-.main-nav a.active {
-    background-color: var(--primary-color-light);
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-.creator-dashboard .header-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-    margin-left: 2rem; /* Sépare du menu principal */
-}
-
-/* --- User Menu Dropdown --- */
-.user-menu .dropdown-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.user-menu .avatar-small {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.user-menu .dropdown-menu {
-    display: none;
-    position: absolute;
-    top: calc(var(--header-height) - 5px); /* Positionne sous le header */
-    right: 1.5rem; /* Alignement à droite */
-    background-color: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-medium);
-    padding: 0.5rem 0;
-    min-width: 180px;
-    z-index: 110;
-}
-
-.user-menu:hover .dropdown-menu,
-.user-menu .dropdown-toggle:focus + .dropdown-menu { 
-    display: block;
-}
-
-.user-menu .dropdown-menu a {
-    display: block;
-    padding: 0.6rem 1.2rem;
-    color: var(--text-color);
-    text-decoration: none;
-    font-size: 0.95rem;
-    white-space: nowrap;
-}
-
-.user-menu .dropdown-menu a:hover {
-    background-color: var(--primary-color-lightest);
-}
-
-.user-menu .dropdown-menu a i {
-    margin-right: 0.8rem;
-    width: 15px;
-    text-align: center;
-    color: var(--muted-text);
-}
-
-/* --- Fin Layout Header --- */
-
-/* --- Main Content --- */
-
-main.dashboard-main {
-    padding: 2rem 0; /* Espace vertical haut/bas */
-    background-color: #f6f2f700; /* Fond gris très clair */
-    flex-grow: 1; /* Pour occuper l'espace restant si footer collé en bas */
-}
-
-.content-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: var(--background-color);
-    padding: 0rem;
-    border-radius: var(--border-radius-large);
-    box-shadow: var(--shadow-soft);
-}
-
-.content-container h1 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: var(--text-color-strong);
-}
-
-/* --- Footer --- */
-
-.dashboard-footer {
-    text-align: center;
-    padding: 1.5rem;
-    margin-top: auto;
-    font-size: 0.9rem;
-    color: var(--muted-text);
-    background-color: var(--background-color-light);
-}
-
-/* --- Styles Communs Dashboard (Boutons, Cartes, Tables...) --- */
-
-/* Boutons (exemple si non dans common.css) */
-.btn {
-    display: inline-block;
-    font-weight: 600; /* Un peu plus affirmé */
-    line-height: 1.5;
-    color: #fff; /* Couleur de texte par défaut (souvent blanc sur fond coloré) */
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    cursor: pointer;
-    user-select: none;
-    background-color: var(--primary-color, #a78bfa); /* Couleur primaire par défaut */
-    border: 1px solid transparent;
-    padding: 0.5rem 1.2rem; /* Padding un peu généreux */
-    font-size: 0.95rem;
-    border-radius: 20px; /* Bords bien arrondis */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Ombre douce */
-    transition: all 0.2s ease-in-out;
-}
-
-.btn:hover {
-    color: #fff;
-    background-color: var(--primary-darker, #8a6df7); /* Couleur primaire un peu plus foncée au survol */
-    border-color: transparent;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ombre un peu plus prononcée */
-    transform: translateY(-1px); /* Léger effet de soulèvement */
-}
-
-/* Variations de boutons */
-.btn-secondary {
-    background-color: var(--secondary-color, #6c757d);
-    color: #fff;
-}
-
-.btn-secondary:hover {
-    background-color: var(--secondary-darker, #5a6268);
-}
-
-.btn-success {
-    background-color: var(--success-color, #28a745);
-    color: #fff;
-}
-
-.btn-success:hover {
-    background-color: var(--success-darker, #218838);
-}
-
-/* etc. pour danger, warning, info si besoin */
-
-/* Style pour les liens qui ressemblent à des boutons (ex: dropdown toggle) */
-.btn-link {
-    font-weight: 400;
-    color: var(--primary-color, #a78bfa);
-    text-decoration: none;
-    background-color: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    padding: 0; /* Adapter si nécessaire */
-}
-
-.btn-link:hover {
-    color: var(--primary-darker, #8a6df7);
-    text-decoration: underline;
-    background-color: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    transform: none;
-}
-
-/* --- Cartes (Cards) --- */
-.card {
-    background-color: #fff;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-soft);
-    padding: 1.5rem;
-}
-
-.card h2 {
-    margin-top: 0;
-    font-weight: 600;
-}
-
-.card .card-body {
-    padding: 1.5rem;
-}
-
-/* --- Styles Spécifiques : Page Messages --- */
-
-.messages-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    gap: 1rem;
-    flex-wrap: wrap; /* Pour les petits écrans */
-}
-
-.search-box {
-    display: flex;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    flex-grow: 1; /* Prend l'espace disponible */
-    min-width: 200px; /* Empêche d'être trop petit */
-}
-
-.search-box i {
-    color: #adb5bd;
-    margin-right: 0.5rem;
-}
-
-.search-box .form-control {
-    border: none;
     background: transparent;
-    outline: none;
-    padding: 0.375rem 0; /* Ajustement padding */
-    font-size: 1rem;
-    width: 100%;
 }
 
-.filter-dropdown {
-    position: relative;
+.creator-header .site-header__inner {
+    width: min(1180px, 100% - 2rem);
 }
 
-.filter-menu {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    padding: 1rem;
-    margin-top: 0.5rem;
-    z-index: 10;
-    min-width: 180px;
-}
-
-.filter-option {
-    display: block;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-}
-
-.filter-option:last-child {
-    margin-bottom: 0;
-}
-
-.messages-layout {
+#main-wrapper {
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
+    width: min(1280px, 100% - 2rem);
+    margin: 0 auto 3rem;
 }
 
-.messages-list-container {
-    flex: 0 0 35%; /* Largeur fixe pour la liste */
-    max-height: 600px; /* Hauteur max avec scroll */
+.creator-sidebar {
+    width: 260px;
+    background: var(--background-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: calc(var(--header-height) + 1.5rem);
+    max-height: calc(100vh - var(--header-height) - 2rem);
     overflow-y: auto;
-    border-right: 1px solid #e9ecef;
-    padding-right: 1.5rem;
 }
 
-.message-item {
-    padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-radius: 8px;
+.creator-sidebar .nav-list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.creator-sidebar .nav-item {
+    justify-content: flex-start;
+    padding: 0.65rem 0.9rem;
+}
+
+.creator-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--heading-color);
     margin-bottom: 0.5rem;
 }
 
-.message-item:hover {
-    background-color: #f8f9fa;
-}
-
-.message-item.unread {
-    font-weight: 600;
-    background-color: #f0faff; /* Léger fond bleu pour non lu */
-}
-
-.message-item.unread .donor-name {
-    color: var(--primary-color, #0d6efd);
-}
-
-.message-item.active {
-    background-color: #e7f1ff; /* Fond quand sélectionné */
-    border-left: 3px solid var(--primary-color, #0d6efd);
-    padding-left: calc(1rem - 3px);
-}
-
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.message-time {
-    color: #6c757d;
-    font-size: 0.8rem;
-}
-
-.message-snippet {
-    font-size: 0.9rem;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.donation-badge {
-    display: inline-block;
-    background-color: #d1fae5;
-    color: #0f5132;
-    font-size: 0.75rem;
-    padding: 0.2em 0.6em;
-    border-radius: 10px;
-    font-weight: 500;
-}
-
-.message-detail-container {
-    flex-grow: 1; /* Prend le reste de l'espace */
-    /* Hérite déjà du style .card */
-    min-height: 300px; /* Hauteur minimale */
-}
-
-.empty-state-list,
-.empty-state-detail {
-    text-align: center;
-    color: #6c757d;
-    padding: 2rem;
-}
-
-.empty-state-detail i {
-    margin-right: 0.5rem;
-}
-
-/* Styles pour le contenu du détail quand chargé */
-.message-detail-content .creator-header {
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-
-.message-detail-content .creator-header h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-}
-
-.message-detail-content .detail-meta {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.message-detail-content .detail-body {
-    line-height: 1.6;
-}
-
-/* --- Fin Styles Messages --- */
-
-/* Ajoutez ici les styles spécifiques au dashboard créateur */
-
-.section-title-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    border: 1px solid #e5e7eb;
-}
-
-.section-title-bar h1,
-.section-title-bar h2,
-.section-title-bar h3 {
-    font-size: 1.4rem;
-    margin: 0;
-    color: #22223b;
-    font-weight: 600;
-}
-
-/* Styles existants pour le bloc d'identité */
-.identity-container {
-    max-width: 900px;
-    margin: 1rem auto 2rem auto; /* Centrage et espace en dessous */
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 2px 19px #cfb8d8;
-    padding: 1.5rem 2rem; /* Padding intérieur */
-}
-
-.identity-container h2 {
-    margin: 0 0 0.5rem 0; /* Espace sous le titre */
-    font-size: 1.5rem;
-    font-weight: 600;
-    display: flex; /* Pour aligner le titre de page si besoin */
-    align-items: baseline;
-}
-
-.page-title {
-    font-size: 1.1rem; /* Plus petit */
-    font-weight: 400; /* Plus léger */
-    color: var(--muted-text, #6c757d); /* Couleur discrète */
-    margin-left: 0.75rem; /* Petit espace après le nom */
-}
-
-nav.simple-sub-menu {
-    display: flex;
-    gap: 1.5rem; /* Espace entre les liens */
-    margin-top: 0.5rem; /* Espace au-dessus du sous-menu */
-}
-
-nav.simple-sub-menu a {
-    color: var(--muted-text, #6c757d);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.2s ease;
-}
-
-nav.simple-sub-menu a:hover,
-nav.simple-sub-menu a.active {
-    color: var(--primary-color, #0d6efd);
-    text-decoration: underline;
-    font-weight: 600; /* Rendre le lien actif plus visible */
-}
-
-/* Les styles pour .user-menu, .dropdown-toggle, .dropdown-menu devraient déjà exister */
-
-/* ... autres styles ... */
-
-/* --- Utilitaires (si besoin) --- */
-.text-center { text-align: center; }
-.mt-1 { margin-top: 0.5rem; }
-/* etc. */
-
-/* --- Media Queries pour Responsive Design (Exemple) --- */
-@media (max-width: 992px) {
-    .creator-dashboard .header-content {
-        padding: 0 1rem; /* Moins de padding sur petits écrans */
-    }
-    .dashboard-main {
-        padding: 1rem;
-    }
-    .content-container {
-        padding: 1.5rem;
-    }
-    .messages-container {
-        grid-template-columns: 1fr; /* Une seule colonne sur petits écrans */
-    }
-}
-
-@media (max-width: 768px) {
-    .main-nav {
-        display: none; /* Cacher la nav classique */
-    }
-    .creator-dashboard .header-right .btn-outline {
-        display: none; /* Cacher le bouton "Voir ma page" */
-    }
-    /* Ici, il faudrait ajouter le bouton burger et le menu mobile */
-
-}
-
-/* Styles specific to links management (moved from links.php) */
-.links-dashboard {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.links-grid {
+.dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-top: 2rem;
 }
 
-.link-card {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.dashboard-grid--cols-3 {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
-.link-icon {
-    width: 48px;
-    height: 48px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.link-icon i {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.link-content {
-    flex-grow: 1;
-}
-
-.link-content h3 {
-    margin: 0 0 0.5rem;
-    color: #2c3e50; /* Example color */
-}
-
-.link-content a {
-    color: #666;
-    text-decoration: none;
-    font-size: 0.9rem;
-    word-break: break-all;
-}
-
-.link-content a:hover {
-    color: var(--primary-color);
-}
-
-.link-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    background: #f8f9fa;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-icon:hover {
-    background: #e9ecef;
-    color: var(--primary-color);
-}
-
-.btn-icon.btn-danger:hover {
-    background: #fee2e2;
-    color: #dc2626; /* Example danger color */
-}
-
-/* Styles for the link modal form */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-.link-form .form-group {
-    margin-bottom: 1rem;
-}
-.link-form label {
-    display: block;
+.dashboard-card h3 {
+    font-size: 1.1rem;
+    color: var(--text-color-muted);
     margin-bottom: 0.5rem;
-    font-weight: bold;
 }
-.link-form input[type="text"],
-.link-form input[type="url"],
-.link-form textarea,
-.link-form select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box; /* Important */
+
+.dashboard-card .metric {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--heading-color);
 }
-.link-form textarea {
-    resize: vertical;
+
+.dashboard-card .trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
 }
-.link-form small {
-    display: block;
-    margin-top: 0.25rem;
-    color: #666;
-    font-size: 0.8rem;
+
+.dashboard-card .trend.is-up {
+    background: rgba(46, 204, 113, 0.15);
+    color: #1c7c46;
 }
-.icon-selector {
+
+.dashboard-card .trend.is-down {
+    background: rgba(231, 76, 60, 0.16);
+    color: #962323;
+}
+
+.recent-donations {
+    display: grid;
+    gap: 1rem;
+}
+
+.recent-donation {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: var(--shadow-sm);
 }
 
-.icon-selector select {
-    flex-grow: 1;
+.recent-donation strong {
+    font-size: 1rem;
+    color: var(--heading-color);
 }
 
-#iconPreview {
-    font-size: 1.5rem;
+.recent-donation .amount {
+    font-weight: 700;
     color: var(--primary-color);
 }
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
 
-/* Responsive styles */
-@media (max-width: 768px) {
-    .links-dashboard {
-        padding: 1rem;
-    }
-
-    .links-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .link-card {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .link-actions {
-        width: 100%;
-        justify-content: center;
-        margin-top: 1rem;
-    }
-}
-
-/* Styles for the Links Table */
-.links-table {
+/* Tables internes */
+.creator-table {
     width: 100%;
-    margin-top: 1.5rem; /* Espacement après le bouton Ajouter */
-    border-collapse: collapse; /* Pour des bordures nettes */
-    background-color: #fff; /* Fond blanc pour le tableau */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Ombre légère */
-    border-radius: 8px; /* Coins arrondis */
-    overflow: hidden; /* Pour que les coins arrondis s'appliquent aux bordures */
+    border-collapse: collapse;
 }
 
-.links-table thead th {
-    background-color: var(--primary-color-light, #f3e8ff); /* Fond légèrement coloré pour l'en-tête */
-    color: var(--primary-color-dark, #581c87); /* Texte plus foncé pour l'en-tête */
-    font-weight: 600;
+.creator-table th,
+.creator-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border-color);
     text-align: left;
-    padding: 1rem 0.75rem;
-    border-bottom: 2px solid var(--primary-color, #a78bfa);
 }
 
-.links-table tbody td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #eee; /* Ligne de séparation fine */
-    vertical-align: middle; /* Aligner le contenu verticalement */
-    color: #555; /* Couleur de texte par défaut */
+.creator-table th {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--text-color-muted);
 }
 
-/* Style pour la dernière ligne sans bordure */
-.links-table tbody tr:last-child td {
-    border-bottom: none;
+.creator-table tbody tr:hover {
+    background: rgba(90, 96, 232, 0.08);
 }
 
-/* Style pour les lignes 'striped' si la classe est utilisée */
-.links-table.striped tbody tr:nth-child(odd) {
-    background-color: #f9f9f9; /* Fond très légèrement grisé */
+/* Alerts dans le dashboard */
+.dashboard-tip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--primary-color);
+    background: rgba(90, 96, 232, 0.12);
+    color: var(--heading-color);
 }
 
-/* Style pour l'icône dans le tableau */
-.link-table-icon {
-    font-size: 1.3rem; /* Taille de l'icône */
-    color: var(--primary-color, #a78bfa); /* Couleur de l'icône */
-    width: 2em; /* Donner une largeur pour l'alignement */
-    text-align: center;
+/* Responsive */
+@media (max-width: 1024px) {
+    #main-wrapper {
+        flex-direction: column;
+    }
+
+    .creator-sidebar {
+        position: static;
+        width: 100%;
+        max-height: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .creator-sidebar .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
 }
 
-/* Style pour la colonne Actions */
-.links-table .action-buttons {
-    text-align: center; /* Centrer les boutons */
-    white-space: nowrap; /* Empêcher le retour à la ligne des boutons */
+@media (max-width: 768px) {
+    .dashboard-title {
+        font-size: 1.65rem;
+    }
+
+    .recent-donation {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 }
 
-/* Ajustement des boutons dans le tableau */
-.links-table .action-buttons .btn-icon {
-    margin: 0 0.25rem; /* Petit espacement entre les boutons */
-    /* On peut reprendre les styles .btn-icon définis plus haut */
-}
-
-/* Style pour le lien URL */
-.links-table td a {
-    color: var(--secondary-color, #4a5568); /* Couleur secondaire pour le lien */
-    text-decoration: none;
-}
-
-.links-table td a:hover {
-    color: var(--primary-color, #a78bfa);
-    text-decoration: underline;
-}
-
-/* Style pour le message 'aucun lien' */
-.links-table tbody td[colspan="4"].center-align {
-    padding: 2rem;
-    color: #777;
-    font-style: italic;
-}

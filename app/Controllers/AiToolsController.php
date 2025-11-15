@@ -9,6 +9,8 @@ use App\Core\Log;
 
 class AiToolsController extends BaseController
 {
+    private bool $aiConfigLoaded = false;
+
     /**
      * Constructeur pour s'assurer que les dépendances parentes sont injectées.
      */
@@ -69,18 +71,6 @@ class AiToolsController extends BaseController
             return;
         }
 
-        // Inclure la configuration IA
-        // Attention au chemin relatif, ajustez si nécessaire
-        $configPath = __DIR__ . '/../../ia/config.php'; 
-        if (!file_exists($configPath)) {
-            ob_clean(); // Nettoyer le buffer
-            http_response_code(500);
-            echo json_encode(['error' => 'Fichier de configuration IA introuvable.']);
-            error_log("Erreur critique: Fichier de configuration IA non trouvé à $configPath");
-            return;
-        }
-        require_once $configPath;
-
         // Vérifier la méthode et l'authentification
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             ob_clean(); // Nettoyer le buffer
@@ -138,14 +128,7 @@ class AiToolsController extends BaseController
 
         // Utiliser la méthode centralisée callMistralApi
         try {
-            // Charger la configuration API spécifique
-            $configPath = '/var/www/html/web/msss/ia/config.php';
-            if (file_exists($configPath)) {
-                require_once $configPath;
-            } else {
-                throw new \Exception('Fichier de configuration IA introuvable.');
-            }
-
+            $this->ensureAiConfig();
             $enhancedResult = $this->callMistralApi($prompt, 0.7, 400); // Température et max tokens ajustables
 
             // Check if callMistralApi returned an error array or the string content
@@ -248,14 +231,7 @@ class AiToolsController extends BaseController
             // Log plus détaillé avant l'appel
             error_log("SuggestReply - Appel API pour créateur {$creatorName}, Tone: {$selectedTone}, Msg Length: " . strlen($donorMessage));
 
-            // Charger la configuration API spécifique
-            $configPath = '/var/www/html/web/msss/ia/config.php';
-            if (file_exists($configPath)) {
-                require_once $configPath;
-            } else {
-                throw new \Exception('Fichier de configuration IA introuvable.');
-            }
-
+            $this->ensureAiConfig();
             $suggestedReply = $this->callMistralApi($prompt, 0.75, 300); // Température légèrement augmentée
 
             // Check if callMistralApi returned an error array or the string content
@@ -366,6 +342,8 @@ class AiToolsController extends BaseController
      */
     private function callMistralApi(string $prompt, float $temperature = 0.7, int $maxTokens = 250): string
     {
+        $this->ensureAiConfig();
+
         // Vérification de la configuration API
         if (!defined('AI_API_KEY') || empty(AI_API_KEY) ||
             !defined('AI_API_ENDPOINT') || empty(AI_API_ENDPOINT) ||
@@ -434,4 +412,22 @@ class AiToolsController extends BaseController
         return $apiContent;
     }
 
+    private function ensureAiConfig(): void
+    {
+        if ($this->aiConfigLoaded) {
+            return;
+        }
+
+        if (!defined('BASE_PATH')) {
+            throw new \RuntimeException('BASE_PATH non défini, impossible de charger la configuration IA.');
+        }
+
+        $configPath = BASE_PATH . '/ia/config.php';
+        if (!file_exists($configPath)) {
+            throw new \RuntimeException('Fichier de configuration IA introuvable.');
+        }
+
+        require_once $configPath;
+        $this->aiConfigLoaded = true;
+    }
 }
