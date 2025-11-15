@@ -19,8 +19,9 @@ $displayName = session('creator_name') ?? session('username') ?? null;
 <header class="site-header">
     <div class="site-header__inner">
         <a href="/" class="site-logo">
-            <img src="/assets/img/logo.png" alt="Msss">
-            <span>Msss</span>
+            <?php $brandName = defined('APP_NAME') ? APP_NAME : 'Msss'; ?>
+            <img src="/assets/img/logo.png" alt="<?= htmlspecialchars($brandName) ?>">
+            <span><?= htmlspecialchars($brandName) ?></span>
         </a>
 
         <nav id="site-nav" class="site-nav">

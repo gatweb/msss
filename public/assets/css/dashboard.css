@@ -19,7 +19,7 @@
 }
 
 .creator-header .site-header__inner {
-    width: min(1180px, 100% - 2rem);
+    width: var(--container-width);
 }
 
 #main-wrapper {

@@ -4,8 +4,9 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <header class="site-header creator-header">
     <div class="site-header__inner">
         <a href="/" class="site-logo">
-            <img src="/assets/img/logo.png" alt="Msss">
-            <span>Espace créatrice</span>
+            <?php $brandName = defined('APP_NAME') ? APP_NAME : 'Msss'; ?>
+            <img src="/assets/img/logo.png" alt="<?= htmlspecialchars($brandName) ?>">
+            <span><?= htmlspecialchars($brandName) ?> — Espace créatrice</span>
         </a>
 
         <nav id="creator-nav" class="site-nav">
