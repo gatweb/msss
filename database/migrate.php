@@ -1,5 +1,20 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+
+use App\Core\Database;
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$basePath = dirname(__DIR__);
+
+if (file_exists($basePath . '/.env')) {
+    Dotenv::createImmutable($basePath)->safeLoad();
+}
+
+require_once __DIR__ . '/../app/config/app.php';
+
+$database = Database::getInstance();
+$pdo = $database->getConnection();
 
 function runMigration($pdo, $file) {
     try {
@@ -15,10 +30,14 @@ function runMigration($pdo, $file) {
 
 // Suppression des tables existantes
 $dropTables = [
+    'DROP TABLE IF EXISTS donator_notes;',
+    'DROP TABLE IF EXISTS messages;',
+    'DROP TABLE IF EXISTS media;',
     'DROP TABLE IF EXISTS creator_stats;',
     'DROP TABLE IF EXISTS donations;',
     'DROP TABLE IF EXISTS creator_links;',
     'DROP TABLE IF EXISTS packs;',
+    'DROP TABLE IF EXISTS global_status;',
     'DROP TABLE IF EXISTS creators;'
 ];
 

@@ -4,33 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? APP_NAME ?></title>
-    
-    <!-- Favicon -->
+
     <link rel="icon" type="image/png" href="/assets/img/favicon.png">
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/assets/css/common.css">
-<link rel="stylesheet" href="/assets/css/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Scripts -->
+    <link rel="stylesheet" href="/assets/css/public.css">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-oZL4YZ6oJQWxqUoh8fDGe0XEt3G5UpiRaY1oCbcnZ6+QcmGeXgnz9K/Y/xFdVtOfvtTDHkJ/xZBwbNG0Ax7y4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <?php if (isset($scripts) && is_array($scripts)): ?>
+    <?php if (!empty($scripts) && is_array($scripts)): ?>
         <?php foreach ($scripts as $script): ?>
-            <script src="<?= $script ?>"></script>
+            <script src="<?= $script ?>" defer></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
-<body>
+<body class="site-shell">
     <?php include __DIR__ . '/header_partial.php'; ?>
 
-
-    <?= $content ?>
-
+    <main class="site-main">
+        <div class="site-main__inner">
+            <?php include __DIR__ . '/flash_messages.php'; ?>
+            <?= $content ?>
+        </div>
+    </main>
 
     <?php include __DIR__ . '/footer.php'; ?>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggles = document.querySelectorAll('[data-nav-toggle]');
+            toggles.forEach((toggle) => {
+                toggle.addEventListener('click', () => {
+                    const target = document.querySelector(toggle.dataset.target);
+                    if (target) {
+                        target.classList.toggle('is-open');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

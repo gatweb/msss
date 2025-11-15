@@ -14,7 +14,7 @@ class LinkRepository
 
     public function getLinksByCreator($creatorId)
     {
-        $sql = "SELECT * FROM links WHERE creator_id = :creator_id";
+        $sql = "SELECT * FROM creator_links WHERE creator_id = :creator_id ORDER BY position ASC";
         $stmt = $this->db->execute($sql, [':creator_id' => $creatorId]);
         return $stmt->fetchAll();
     }
@@ -26,7 +26,7 @@ class LinkRepository
      */
     public function findById(int $id)
     {
-        $sql = "SELECT * FROM links WHERE id = :id";
+        $sql = "SELECT * FROM creator_links WHERE id = :id";
         $stmt = $this->db->execute($sql, [':id' => $id]);
         return $stmt->fetch(); // Utilise fetch() pour un seul résultat
     }
@@ -38,16 +38,22 @@ class LinkRepository
      */
     public function create(array $data)
     {
-        $sql = "INSERT INTO links (creator_id, title, url, icon) 
-                VALUES (:creator_id, :title, :url, :icon)";
-        
+        $includePosition = array_key_exists('position', $data);
+        $columns = 'creator_id, title, url, icon' . ($includePosition ? ', position' : '');
+        $placeholders = ':creator_id, :title, :url, :icon' . ($includePosition ? ', :position' : '');
+        $sql = sprintf('INSERT INTO creator_links (%s) VALUES (%s)', $columns, $placeholders);
+
         $params = [
             ':creator_id' => $data['creator_id'],
             ':title' => $data['title'],
             ':url' => $data['url'],
             ':icon' => $data['icon'] ?? null
         ];
-        
+
+        if ($includePosition) {
+            $params[':position'] = $data['position'];
+        }
+
         if ($this->db->execute($sql, $params)) {
             return $this->db->lastInsertId();
         } else {
@@ -64,19 +70,26 @@ class LinkRepository
      */
     public function update(int $id, array $data)
     {
-        $sql = "UPDATE links SET 
-                    title = :title, 
-                    url = :url, 
-                    icon = :icon 
-                WHERE id = :id";
-        
+        $set = [
+            'title = :title',
+            'url = :url',
+            'icon = :icon'
+        ];
+
         $params = [
             ':id' => $id,
             ':title' => $data['title'],
             ':url' => $data['url'],
             ':icon' => $data['icon'] ?? null
         ];
-        
+
+        if (array_key_exists('position', $data)) {
+            $set[] = 'position = :position';
+            $params[':position'] = $data['position'];
+        }
+
+        $sql = sprintf('UPDATE creator_links SET %s WHERE id = :id', implode(', ', $set));
+
         $stmt = $this->db->execute($sql, $params);
         return $stmt->rowCount() > 0; // Vérifie si au moins une ligne a été affectée
     }
@@ -89,7 +102,7 @@ class LinkRepository
      */
     public function deleteByIdAndCreator(int $id, int $creatorId)
     {
-        $sql = "DELETE FROM links WHERE id = :id AND creator_id = :creator_id";
+        $sql = "DELETE FROM creator_links WHERE id = :id AND creator_id = :creator_id";
         $params = [
             ':id' => $id,
             ':creator_id' => $creatorId
