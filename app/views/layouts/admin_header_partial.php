@@ -8,6 +8,10 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
             <span>Administration</span>
         </a>
 
+        <button class="site-nav__toggle" type="button" data-nav-toggle data-target="#admin-nav" aria-label="Basculer la navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
         <nav id="admin-nav" class="site-nav">
             <ul class="site-nav__list">
                 <li>
