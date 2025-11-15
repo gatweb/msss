@@ -30,10 +30,14 @@ function runMigration($pdo, $file) {
 
 // Suppression des tables existantes
 $dropTables = [
+    'DROP TABLE IF EXISTS donator_notes;',
+    'DROP TABLE IF EXISTS messages;',
+    'DROP TABLE IF EXISTS media;',
     'DROP TABLE IF EXISTS creator_stats;',
     'DROP TABLE IF EXISTS donations;',
     'DROP TABLE IF EXISTS creator_links;',
     'DROP TABLE IF EXISTS packs;',
+    'DROP TABLE IF EXISTS global_status;',
     'DROP TABLE IF EXISTS creators;'
 ];
 

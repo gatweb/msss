@@ -14,3 +14,8 @@ INSERT OR REPLACE INTO packs (creator_id, name, description, price, currency, pe
 INSERT INTO donations (creator_id, donor_name, donor_email, amount, donation_type, message, donation_timestamp, timer_status) VALUES
 (3, 'Thomas Donateur', 'donateur@test.com', 10.00, 'one_time', 'Super travail !', CURRENT_TIMESTAMP, 'completed'),
 (3, 'Thomas Donateur', 'donateur@test.com', 15.00, 'monthly', 'Je soutiens ton art chaque mois', CURRENT_TIMESTAMP, 'completed');
+
+-- Messages de démonstration
+INSERT INTO messages (sender_id, receiver_id, content, is_read, created_at) VALUES
+(2, 3, 'Bonjour Sarah, votre dernier live était incroyable ! Merci pour tout ce que vous faites.', 0, CURRENT_TIMESTAMP),
+(3, 2, 'Merci pour ton soutien ! Je prépare un nouveau pack spécial pour la semaine prochaine 😊', 1, CURRENT_TIMESTAMP);
