@@ -1,5 +1,20 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+
+use App\Core\Database;
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$basePath = dirname(__DIR__);
+
+if (file_exists($basePath . '/.env')) {
+    Dotenv::createImmutable($basePath)->safeLoad();
+}
+
+require_once __DIR__ . '/../app/config/app.php';
+
+$database = Database::getInstance();
+$pdo = $database->getConnection();
 
 function runMigration($pdo, $file) {
     try {
