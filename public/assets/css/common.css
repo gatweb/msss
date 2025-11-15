@@ -527,7 +527,7 @@ legend {
 .nav-list,
 .user-nav,
 .user-header .nav-list {
-    display: flex;
+    display: content;
     align-items: center;
     gap: 0.75rem;
     list-style: none;
