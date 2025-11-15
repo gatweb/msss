@@ -1,39 +1,31 @@
 <?php
-$currentPath = $_SERVER['REQUEST_URI'] ?? '/';
-?>
-<header class="site-header admin-header">
-    <div class="site-header__inner">
-        <a class="site-logo" href="/profile/admin/creators">
-            <i class="fas fa-crown"></i>
-            <span>Administration</span>
-        </a>
+$headerClasses = 'admin-header';
+$logoHref = '/profile/admin/creators';
+$logoLabel = 'Administration';
+$logoIcon = 'fas fa-crown';
+$logoImage = null;
+$navLinks = [
+    [
+        'label' => 'Créatrices',
+        'href' => '/profile/admin/creators',
+        'icon' => 'fas fa-users',
+        'match' => '/profile/admin/creators',
+    ],
+    [
+        'label' => 'Retour au site',
+        'href' => '/',
+        'icon' => 'fas fa-home',
+        'match' => '/',
+    ],
+];
 
-        <button class="site-nav__toggle" type="button" data-nav-toggle data-target="#admin-nav" aria-label="Basculer la navigation">
-            <i class="fas fa-bars"></i>
-        </button>
+$actionButtons = [
+    [
+        'label' => 'Déconnexion',
+        'href' => '/logout',
+        'icon' => 'fas fa-sign-out-alt',
+        'variant' => 'primary',
+    ],
+];
 
-        <nav id="admin-nav" class="site-nav">
-            <ul class="site-nav__list">
-                <li>
-                    <a href="/profile/admin/creators" class="site-nav__link<?= str_starts_with($currentPath, '/profile/admin/creators') ? ' is-active' : '' ?>">
-                        <i class="fas fa-users"></i>
-                        Créatrices
-                    </a>
-                </li>
-                <li>
-                    <a href="/" class="site-nav__link">
-                        <i class="fas fa-home"></i>
-                        Retour au site
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="site-actions">
-            <a class="btn" href="/logout">
-                <i class="fas fa-sign-out-alt"></i>
-                Déconnexion
-            </a>
-        </div>
-    </div>
-</header>
+require __DIR__ . '/header_partial.php';
