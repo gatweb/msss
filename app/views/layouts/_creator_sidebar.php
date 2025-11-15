@@ -27,6 +27,7 @@ $publicUrl = $publicUsername ? '/creator/' . rawurlencode($publicUsername) : '/'
         <?php endforeach; ?>
         <li>
             <a class="nav-item" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank">
+            <a class="nav-item" href="/creator/public" target="_blank">
                 <i class="bi bi-eye-fill"></i>
                 Voir page publique
             </a>
