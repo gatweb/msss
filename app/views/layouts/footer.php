@@ -1,7 +1,9 @@
-    </main>
-    
-    <footer class="admin-footer">
-        <div class="footer-content">
-            <p>&copy; <?= date('Y') ?> Msss - Tous droits réservés</p>
-        </div>
-    </footer>
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <p>&copy; <?= date('Y') ?> Msss &mdash; Tous droits réservés.</p>
+        <nav class="site-footer__links">
+            <a href="mailto:contact@maitress.es">Support</a>
+            <a href="/mentions-legales">Mentions légales</a>
+        </nav>
+    </div>
+</footer>

@@ -54,6 +54,7 @@ class Auth {
                 // Définir les données de session
                 $_SESSION['creator_id'] = $creator['id'];
                 $_SESSION['creator_name'] = $creator['name'];
+                $_SESSION['creator_username'] = $creator['username'] ?? null;
                 $_SESSION['creator_is_admin'] = $creator['is_admin'];
                 
                 return true;
