@@ -8,6 +8,10 @@ $links = [
     ['/dashboard/ai-tools', 'Outils IA', 'bi bi-stars'],
     ['/dashboard/settings', 'Paramètres', 'bi bi-gear-fill'],
 ];
+
+$currentCreator = $creator ?? [];
+$publicUsername = $currentCreator['username'] ?? ($_SESSION['creator_username'] ?? null);
+$publicUrl = $publicUsername ? '/creator/' . rawurlencode($publicUsername) : '/';
 ?>
 <nav class="creator-sidebar">
     <h5>Navigation</h5>
@@ -22,6 +26,7 @@ $links = [
             </li>
         <?php endforeach; ?>
         <li>
+            <a class="nav-item" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank">
             <a class="nav-item" href="/creator/public" target="_blank">
                 <i class="bi bi-eye-fill"></i>
                 Voir page publique
