@@ -16,16 +16,17 @@
 
 .creator-header {
     background: transparent;
+    padding-top: 1.5rem;
 }
 
 .creator-header .site-header__inner {
-    width: var(--container-width);
+    width: min(1280px, 100% - 2rem);
 }
 
 #main-wrapper {
     display: flex;
     gap: 2rem;
-    width: var(--container-width);
+    width: min(1280px, 100% - 2rem);
     margin: 0 auto 3rem;
 }
 

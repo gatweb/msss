@@ -4,10 +4,13 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <header class="site-header creator-header">
     <div class="site-header__inner">
         <a href="/" class="site-logo">
-            <?php $brandName = defined('APP_NAME') ? APP_NAME : 'Msss'; ?>
-            <img src="/assets/img/logo.png" alt="<?= htmlspecialchars($brandName) ?>">
-            <span><?= htmlspecialchars($brandName) ?> — Espace créatrice</span>
+            <img src="/assets/img/logo.png" alt="Msss">
+            <span>Espace créatrice</span>
         </a>
+
+        <button class="site-nav__toggle" type="button" data-nav-toggle data-target="#creator-nav" aria-label="Basculer la navigation">
+            <i class="fas fa-bars"></i>
+        </button>
 
         <nav id="creator-nav" class="site-nav">
             <ul class="site-nav__list">

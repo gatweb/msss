@@ -8,6 +8,10 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
             <span>Espace donateur</span>
         </a>
 
+        <button class="site-nav__toggle" type="button" data-nav-toggle data-target="#user-nav" aria-label="Basculer la navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
         <nav id="user-nav" class="site-nav">
             <ul class="site-nav__list">
                 <li>
