@@ -1,7 +1,9 @@
-<?php // Pied de page créatrice minimal
-?>
-<footer class="footer">
-    <div class="container">
-        <p>&copy; <?php echo date('Y'); ?> Msss. Tous droits réservés.</p>
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <p>&copy; <?= date('Y') ?> Msss &mdash; Espace créatrice.</p>
+        <nav class="site-footer__links">
+            <a href="mailto:contact@maitress.es">Support</a>
+            <a href="/logout">Déconnexion</a>
+        </nav>
     </div>
 </footer>

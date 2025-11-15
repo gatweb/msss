@@ -30,6 +30,8 @@ $router->get('/dashboard/donators', [DashboardController::class, 'donators']);
 $router->get('/dashboard/donators/profile', [DashboardController::class, 'donatorProfile']);
 $router->post('/dashboard/donators/profile', [DashboardController::class, 'donatorProfile']);
 $router->get('/dashboard/ai-tools', [AiToolsController::class, 'index']);
+$router->get('/dashboard/stats', [DashboardController::class, 'stats']);
+$router->get('/dashboard/settings', [ProfileController::class, 'settings']);
 
 // Route API pour l'amélioration de texte
 $router->addRoute('POST', '/api/ai/enhance-text', ['App\Controllers\AiToolsController', 'enhanceText']);
