@@ -36,13 +36,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const toggles = document.querySelectorAll('[data-nav-toggle]');
-            toggles.forEach((toggle) => {
-                toggle.addEventListener('click', () => {
-                    const target = document.querySelector(toggle.dataset.target);
-                    if (target) {
-                        target.classList.toggle('is-open');
+            document.querySelectorAll('.site-nav__list').forEach((list) => {
+                list.addEventListener('wheel', (event) => {
+                    if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) {
+                        return;
                     }
+                    event.preventDefault();
+                    list.scrollLeft += event.deltaY;
                 });
             });
         });
