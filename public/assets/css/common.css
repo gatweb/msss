@@ -9,6 +9,7 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
 
 :root {
     --primary-color: #5a60e8;
@@ -134,7 +135,7 @@ ul { list-style: none; }
 }
 
 .site-logo img {
-    height: 18px;
+    height: 150px;
     width: auto;
     filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.12));
 }
@@ -579,4 +580,3 @@ legend {
 .me-2 { margin-right: 0.5rem; }
 .mb-3 { margin-bottom: 1rem; }
 .mb-4 { margin-bottom: 1.5rem; }
-
