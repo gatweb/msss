@@ -1,0 +1,58 @@
+{% set sidebarTitle = sidebarTitle|default('Navigation') %}
+{% set defaultSidebarLinks = [
+    {'href': '/dashboard', 'match': '/dashboard', 'label': 'Tableau de bord', 'icon': 'bi bi-grid-1x2-fill'},
+    {'href': '/dashboard/stats', 'match': '/dashboard/stats', 'label': 'Statistiques', 'icon': 'bi bi-graph-up'},
+    {'href': '/dashboard/links', 'match': '/dashboard/links', 'label': 'Mes liens', 'icon': 'bi bi-link-45deg'},
+    {'href': '/dashboard/ai-tools', 'match': '/dashboard/ai-tools', 'label': 'Outils IA', 'icon': 'bi bi-stars'},
+    {'href': '/dashboard/settings', 'match': '/dashboard/settings', 'label': 'Paramètres', 'icon': 'bi bi-gear-fill'}
+] %}
+{% set sidebarLinks = sidebarLinks|default(defaultSidebarLinks) %}
+{% set computedSidebarLinks = [] %}
+{% for link in sidebarLinks %}
+    {% set href = link.href|default('#') %}
+    {% set match = link.match|default(href) %}
+    {% set linkIsActive = link.isActive is defined ? link.isActive : is_active_path(match) %}
+    {% set computedSidebarLinks = computedSidebarLinks|merge([link|merge({'href': href, 'match': match, 'isActive': linkIsActive})]) %}
+{% endfor %}
+{% set creatorUsername = creator.username|default(creatorUsername|default(null)) %}
+{% if creatorUsername %}
+    {% set fallbackPublicUrl = '/creator/' ~ creatorUsername|url_encode %}
+{% else %}
+    {% set fallbackPublicUrl = '/creator/public' %}
+{% endif %}
+{% set publicProfileUrl = publicProfileUrl|default(fallbackPublicUrl) %}
+{% set publicProfileLabel = publicProfileLabel|default('Voir page publique') %}
+{% set publicProfileIcon = publicProfileIcon|default('bi bi-eye-fill') %}
+{% set publicProfileTarget = publicProfileTarget|default('_blank') %}
+{% set logoutUrl = logoutUrl|default('/logout') %}
+{% set logoutLabel = logoutLabel|default('Déconnexion') %}
+{% set logoutIcon = logoutIcon|default('bi bi-box-arrow-right') %}
+<nav class="creator-sidebar">
+    {% if sidebarTitle %}
+        <h5>{{ sidebarTitle }}</h5>
+    {% endif %}
+    <ul class="nav-list">
+        {% for link in computedSidebarLinks %}
+            <li>
+                <a class="nav-item {{ link.isActive ? 'active' }}" href="{{ link.href }}">
+                    {% if link.icon %}
+                        <i class="{{ link.icon }}"></i>
+                    {% endif %}
+                    {{ link.label }}
+                </a>
+            </li>
+        {% endfor %}
+        <li>
+            <a class="nav-item" href="{{ publicProfileUrl }}" target="{{ publicProfileTarget }}">
+                <i class="{{ publicProfileIcon }}"></i>
+                {{ publicProfileLabel }}
+            </a>
+        </li>
+    </ul>
+    <div class="sidebar-footer">
+        <a class="nav-item" href="{{ logoutUrl }}">
+            <i class="{{ logoutIcon }}"></i>
+            {{ logoutLabel }}
+        </a>
+    </div>
+</nav>
