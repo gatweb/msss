@@ -135,7 +135,7 @@ ul { list-style: none; }
 }
 
 .site-logo img {
-    height: 18px;
+    height: 150px;
     width: auto;
     filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.12));
 }
