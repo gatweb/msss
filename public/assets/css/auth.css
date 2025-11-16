@@ -37,6 +37,11 @@
     color: var(--text-color-muted);
 }
 
+.auth-header .site-logo img {
+    height: 145px;
+    margin-bottom: 1rem;
+}
+
 .auth-form { display: grid; gap: 1.1rem; }
 
 .auth-form .input-group {
@@ -87,4 +92,3 @@
     color: var(--primary-color);
     font-weight: 600;
 }
-
