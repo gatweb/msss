@@ -1,6 +1,11 @@
 <?php $hideSidebar = true; ?>
 <div class="container mt-4">
-    <h1 class="mb-4">Modifier le pack</h1>
+    <header class="page-section-header mb-4">
+        <div class="page-section-heading">
+            <p class="page-section-label">Offres</p>
+            <h2 class="page-section-title">Modifier le pack</h2>
+        </div>
+    </header>
     <form action="/profile/packs/edit/<?= $pack['id'] ?>" method="post" class="bg-white p-4 rounded shadow-sm" style="max-width:600px;margin:auto;">
         <div class="mb-3">
             <label for="name" class="form-label">Nom du pack</label>

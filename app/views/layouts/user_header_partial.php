@@ -1,11 +1,35 @@
-<header class="user-header">
-    <div class="container">
-        <a href="/profile" class="logo">Mon Profil</a>
-        <nav class="user-nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/profile/packs">Mes Packs</a>
-            <a href="/profile/links">Mes Liens</a>
-            <a href="/logout">Déconnexion</a>
-        </nav>
-    </div>
-</header>
+<?php
+$headerClasses = 'user-header';
+$logoHref = '/profile';
+$logoSubLabel = 'Espace donateur';
+$navLinks = [
+    [
+        'label' => 'Dashboard',
+        'href' => '/dashboard',
+        'match' => '/dashboard',
+        'icon' => 'fas fa-chart-line',
+    ],
+    [
+        'label' => 'Mes packs',
+        'href' => '/profile/packs',
+        'match' => '/profile/packs',
+        'icon' => 'fas fa-gift',
+    ],
+    [
+        'label' => 'Mes liens',
+        'href' => '/profile/links',
+        'match' => '/profile/links',
+        'icon' => 'fas fa-link',
+    ],
+];
+
+$actionButtons = [
+    [
+        'label' => 'Déconnexion',
+        'href' => '/logout',
+        'icon' => 'fas fa-sign-out-alt',
+        'variant' => 'primary',
+    ],
+];
+
+require __DIR__ . '/header_partial.php';

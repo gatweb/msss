@@ -110,6 +110,7 @@ class AuthController extends BaseController {
             $_SESSION['is_admin'] = $creator['is_admin'];
             $_SESSION['creator_id'] = $creator['id'];
             $_SESSION['creator_name'] = $creator['name'];
+            $_SESSION['creator_username'] = $creator['username'] ?? null;
             $_SESSION['creator_is_admin'] = $creator['is_admin'];
             $_SESSION['initialized'] = true;
 

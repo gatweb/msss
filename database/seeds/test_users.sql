@@ -1,27 +1,21 @@
--- Administrateur de test
-INSERT INTO users (email, password, name, role, created_at) VALUES
-('admin@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin Test', 'admin', NOW());
+-- Comptes de test supplémentaires
+INSERT OR REPLACE INTO creators (
+    id, name, username, email, password, tagline, bio, donation_goal, status, role, is_active, is_admin
+) VALUES
+(2, 'Admin Test', 'admin-test', 'admin@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Gestionnaire', 'Compte administrateur de démonstration', 0, 'active', 'admin', 1, 1),
+(3, 'Sarah Créatrice', 'sarah-creatrice', 'creatrice@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Artiste digitale & streameuse', 'Je crée des illustrations et partage ma passion en direct !', 500, 'active', 'creator', 1, 0);
 
--- Créatrice de test
-INSERT INTO creators (email, password, name, tagline, description, role, status, created_at) VALUES
-('creatrice@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sarah Créatrice', 'Artiste digitale & streameuse', 'Je crée des illustrations et partage ma passion en direct !', 'creator', 'active', NOW());
+-- Packs de démonstration
+INSERT OR REPLACE INTO packs (creator_id, name, description, price, currency, perks, is_active, position) VALUES
+(3, 'Pack Découverte', 'Parfait pour commencer !', 5.00, 'EUR', '["Accès au chat privé"]', 1, 1),
+(3, 'Pack Premium', 'Pour les vrais fans', 15.00, 'EUR', '["Badge premium", "Contenu exclusif"]', 1, 2);
 
--- Donateur de test
-INSERT INTO users (email, password, name, role, created_at) VALUES
-('donateur@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Thomas Donateur', 'user', NOW());
+-- Dons de test
+INSERT INTO donations (creator_id, donor_name, donor_email, amount, donation_type, message, donation_timestamp, timer_status) VALUES
+(3, 'Thomas Donateur', 'donateur@test.com', 10.00, 'one_time', 'Super travail !', CURRENT_TIMESTAMP, 'completed'),
+(3, 'Thomas Donateur', 'donateur@test.com', 15.00, 'monthly', 'Je soutiens ton art chaque mois', CURRENT_TIMESTAMP, 'completed');
 
--- Ajout de quelques packs pour la créatrice de test
-INSERT INTO packs (creator_id, name, description, price, benefits, created_at) VALUES
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), 'Pack Découverte', 'Parfait pour commencer !', 5.00, '["Accès au chat privé", "Badge spécial"]', NOW()),
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), 'Pack Premium', 'Pour les vrais fans', 15.00, '["Accès au chat privé", "Badge premium", "Contenu exclusif", "1 commission par mois"]', NOW());
-
--- Ajout de quelques liens pour la créatrice de test
-INSERT INTO creator_links (creator_id, title, url, icon, created_at) VALUES
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), 'Twitter', 'https://twitter.com/sarahcreatrice', 'fab fa-twitter', NOW()),
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), 'Instagram', 'https://instagram.com/sarahcreatrice', 'fab fa-instagram', NOW()),
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), 'Twitch', 'https://twitch.tv/sarahcreatrice', 'fab fa-twitch', NOW());
-
--- Ajout de quelques dons de test
-INSERT INTO donations (creator_id, user_id, amount, donation_type, comment, created_at) VALUES
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), (SELECT id FROM users WHERE email = 'donateur@test.com'), 10.00, 'one_time', 'Super travail !', NOW()),
-((SELECT id FROM creators WHERE email = 'creatrice@test.com'), (SELECT id FROM users WHERE email = 'donateur@test.com'), 15.00, 'monthly', 'Je soutiens ton art chaque mois', NOW());
+-- Messages de démonstration
+INSERT INTO messages (sender_id, receiver_id, content, is_read, created_at) VALUES
+(2, 3, 'Bonjour Sarah, votre dernier live était incroyable ! Merci pour tout ce que vous faites.', 0, CURRENT_TIMESTAMP),
+(3, 2, 'Merci pour ton soutien ! Je prépare un nouveau pack spécial pour la semaine prochaine 😊', 1, CURRENT_TIMESTAMP);

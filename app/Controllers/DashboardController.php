@@ -11,6 +11,7 @@ use App\Repositories\DonationRepository;
 use App\Repositories\DonatorNoteRepository;
 use App\Repositories\LinkRepository;
 use App\Repositories\PackRepository;
+use DateInterval;
 use DateTimeImmutable;
 
 class DashboardController extends BaseController { // Ajouter "extends BaseController"
@@ -171,10 +172,317 @@ class DashboardController extends BaseController { // Ajouter "extends BaseContr
             throw $e;
         }
     }
-    
+
+    public function stats() {
+        if (!isset($_SESSION['creator_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $creatorId = (int)$_SESSION['creator_id'];
+        $creator = $this->creatorRepo->findById($creatorId);
+
+        if (!$creator) {
+            header('Location: /logout');
+            exit;
+        }
+
+        $creator['is_creator'] = true;
+        $this->creator = $creator;
+
+        $now = new DateTimeImmutable('now');
+        $recentRange = new DateInterval('P30D');
+        $rangeStart = $now->sub($recentRange);
+        $previousStart = $now->sub(new DateInterval('P60D'));
+
+        $donationsRaw = $this->donationRepo->getDonationsByCreator($creatorId);
+        $donations = array_map(static function (array $donation) {
+            $timestamp = $donation['donation_timestamp'] ?? $donation['created_at'] ?? 'now';
+
+            try {
+                $createdAt = new DateTimeImmutable($timestamp);
+            } catch (\Exception $e) {
+                $createdAt = new DateTimeImmutable('now');
+            }
+
+            $email = strtolower(trim($donation['donor_email'] ?? ''));
+            $name = trim($donation['donor_name'] ?? '');
+            $donorKey = $email;
+
+            if ($donorKey === '') {
+                if ($name !== '') {
+                    $normalizedName = function_exists('mb_strtolower') ? mb_strtolower($name) : strtolower($name);
+                    $donorKey = md5($normalizedName);
+                } else {
+                    $donorKey = 'anonymous_' . ($donation['id'] ?? spl_object_id((object)[]));
+                }
+            }
+
+            return [
+                'id' => $donation['id'] ?? null,
+                'amount' => (float)($donation['amount'] ?? 0),
+                'donation_type' => strtolower((string)($donation['donation_type'] ?? 'one_time')),
+                'pack_id' => $donation['pack_id'] ?? null,
+                'donor_key' => $donorKey,
+                'created_at' => $createdAt,
+                'donor_email' => $donation['donor_email'] ?? '',
+                'donor_name' => $name !== '' ? $name : 'Anonyme',
+            ];
+        }, $donationsRaw);
+
+        $totalRevenue = array_sum(array_column($donations, 'amount'));
+        $donationCount = count($donations);
+        $amounts = array_column($donations, 'amount');
+
+        $medianDonation = 0.0;
+        if ($donationCount > 0) {
+            sort($amounts, SORT_NUMERIC);
+            $middleIndex = (int) floor(($donationCount - 1) / 2);
+            if ($donationCount % 2 === 0) {
+                $medianDonation = ($amounts[$middleIndex] + $amounts[$middleIndex + 1]) / 2;
+            } else {
+                $medianDonation = $amounts[$middleIndex];
+            }
+        }
+
+        $averageDonation = $donationCount > 0 ? $totalRevenue / $donationCount : 0.0;
+        $highestDonation = $donationCount > 0 ? max($amounts) : 0.0;
+
+        $recentDonations = array_filter($donations, static fn (array $donation) => $donation['created_at'] >= $rangeStart);
+        $previousDonations = array_filter($donations, static fn (array $donation) => $donation['created_at'] >= $previousStart && $donation['created_at'] < $rangeStart);
+
+        $totalRecent = array_sum(array_map(static fn (array $donation) => $donation['amount'], $recentDonations));
+        $totalPrevious = array_sum(array_map(static fn (array $donation) => $donation['amount'], $previousDonations));
+
+        $revenueTrend = 0;
+        if ($totalPrevious > 0) {
+            $revenueTrend = (int) round((($totalRecent - $totalPrevious) / $totalPrevious) * 100);
+        } elseif ($totalRecent > 0) {
+            $revenueTrend = 100;
+        }
+
+        $firstDonationByDonor = [];
+        $donationsByDonor = [];
+        foreach ($donations as $donation) {
+            $donorKey = $donation['donor_key'];
+            $donationsByDonor[$donorKey][] = $donation;
+            if (!isset($firstDonationByDonor[$donorKey]) || $donation['created_at'] < $firstDonationByDonor[$donorKey]) {
+                $firstDonationByDonor[$donorKey] = $donation['created_at'];
+            }
+        }
+
+        $newDonors = 0;
+        $previousNewDonors = 0;
+        foreach ($firstDonationByDonor as $firstDonation) {
+            if ($firstDonation >= $rangeStart) {
+                $newDonors++;
+            } elseif ($firstDonation >= $previousStart && $firstDonation < $rangeStart) {
+                $previousNewDonors++;
+            }
+        }
+
+        $donorsTrend = 0;
+        if ($previousNewDonors > 0) {
+            $donorsTrend = (int) round((($newDonors - $previousNewDonors) / $previousNewDonors) * 100);
+        } elseif ($newDonors > 0) {
+            $donorsTrend = 100;
+        }
+
+        $regularDonors = 0;
+        $lifetimeMonths = [];
+        foreach ($donationsByDonor as $donorDonations) {
+            usort($donorDonations, static fn ($a, $b) => $a['created_at'] <=> $b['created_at']);
+            if (count($donorDonations) > 1) {
+                $regularDonors++;
+            }
+
+            $first = $donorDonations[0]['created_at'];
+            $last = end($donorDonations)['created_at'];
+            $diff = $last->diff($first);
+            $months = $diff->days / 30;
+            $lifetimeMonths[] = round($months, 1);
+        }
+
+        $totalDonors = count($donationsByDonor);
+        $retentionRate = $totalDonors > 0 ? round(($regularDonors / $totalDonors) * 100, 1) : 0.0;
+        $averageLifetime = !empty($lifetimeMonths) ? round(array_sum($lifetimeMonths) / count($lifetimeMonths), 1) : 0.0;
+
+        $ranges = [
+            ['label' => '0€ - 10€', 'min' => 0, 'max' => 10],
+            ['label' => '10€ - 25€', 'min' => 10, 'max' => 25],
+            ['label' => '25€ - 50€', 'min' => 25, 'max' => 50],
+            ['label' => '50€ - 100€', 'min' => 50, 'max' => 100],
+            ['label' => '100€ et +', 'min' => 100, 'max' => null],
+        ];
+        $distributionCounts = array_fill(0, count($ranges), 0);
+        foreach ($amounts as $amount) {
+            foreach ($ranges as $index => $range) {
+                $min = $range['min'];
+                $max = $range['max'];
+                $inRange = $max === null ? $amount >= $min : ($amount >= $min && $amount < $max);
+                if ($inRange) {
+                    $distributionCounts[$index]++;
+                    break;
+                }
+            }
+        }
+
+        $monthsMap = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $monthPoint = $now->sub(new DateInterval('P' . $i . 'M'));
+            $key = $monthPoint->format('Y-m');
+            $monthsMap[$key] = [
+                'label' => $monthPoint->format('m/Y'),
+                'value' => 0.0,
+            ];
+        }
+
+        foreach ($donations as $donation) {
+            $monthKey = $donation['created_at']->format('Y-m');
+            if (isset($monthsMap[$monthKey])) {
+                $monthsMap[$monthKey]['value'] += $donation['amount'];
+            }
+        }
+
+        $donorsByMonth = array_fill_keys(array_keys($monthsMap), 0);
+        foreach ($firstDonationByDonor as $firstDonation) {
+            $monthKey = $firstDonation->format('Y-m');
+            if (isset($donorsByMonth[$monthKey])) {
+                $donorsByMonth[$monthKey]++;
+            }
+        }
+
+        $donorMonths = [];
+        foreach ($donationsByDonor as $donorKey => $donorDonations) {
+            foreach ($donorDonations as $donation) {
+                $monthKey = $donation['created_at']->format('Y-m');
+                $donorMonths[$monthKey][$donorKey] = true;
+            }
+        }
+
+        $monthKeys = array_keys($monthsMap);
+        $retentionLabels = [];
+        $retentionRates = [];
+        foreach ($monthKeys as $index => $monthKey) {
+            $retentionLabels[] = $monthsMap[$monthKey]['label'];
+            $activeDonors = isset($donorMonths[$monthKey]) ? count($donorMonths[$monthKey]) : 0;
+            $returning = 0;
+            if ($index > 0 && $activeDonors > 0) {
+                $previousKey = $monthKeys[$index - 1];
+                if (isset($donorMonths[$previousKey])) {
+                    $currentDonors = array_keys($donorMonths[$monthKey]);
+                    $previousDonors = array_keys($donorMonths[$previousKey]);
+                    $returning = count(array_intersect($currentDonors, $previousDonors));
+                }
+            }
+            $retentionRates[] = $activeDonors > 0 ? round(($returning / $activeDonors) * 100, 1) : 0.0;
+        }
+
+        $packs = $this->packRepo->getPacksByCreator($creatorId);
+        $packStats = [];
+        $bestRevenue = 0.0;
+        foreach ($packs as $pack) {
+            $packDonations = array_filter($donations, static function (array $donation) use ($pack) {
+                if (!empty($donation['pack_id'])) {
+                    return (int) $donation['pack_id'] === (int) $pack['id'];
+                }
+
+                return $donation['donation_type'] === 'monthly'
+                    && isset($pack['price'])
+                    && abs($donation['amount'] - (float) $pack['price']) < 0.01;
+            });
+
+            $uniquePackDonors = [];
+            $currentMonthKey = $now->format('Y-m');
+            $previousMonthKey = $now->sub(new DateInterval('P1M'))->format('Y-m');
+            $currentMonthRevenue = 0.0;
+            $previousMonthRevenue = 0.0;
+
+            foreach ($packDonations as $packDonation) {
+                $donorKey = $packDonation['donor_key'];
+                $uniquePackDonors[$donorKey] = ($uniquePackDonors[$donorKey] ?? 0) + 1;
+                $donationMonth = $packDonation['created_at']->format('Y-m');
+                if ($donationMonth === $currentMonthKey) {
+                    $currentMonthRevenue += $packDonation['amount'];
+                }
+                if ($donationMonth === $previousMonthKey) {
+                    $previousMonthRevenue += $packDonation['amount'];
+                }
+            }
+
+            $subscribers = count($uniquePackDonors);
+            $monthlyRevenue = array_sum(array_map(static fn (array $donation) => $donation['amount'], $packDonations));
+            $regularForPack = count(array_filter($uniquePackDonors, static fn (int $count) => $count > 1));
+            $packRetention = $subscribers > 0 ? round(($regularForPack / $subscribers) * 100, 1) : 0.0;
+            $growth = 0;
+            if ($previousMonthRevenue > 0) {
+                $growth = (int) round((($currentMonthRevenue - $previousMonthRevenue) / $previousMonthRevenue) * 100);
+            } elseif ($currentMonthRevenue > 0) {
+                $growth = 100;
+            }
+
+            $packStats[] = [
+                'name' => $pack['name'],
+                'price' => (float) ($pack['price'] ?? 0),
+                'subscribers' => $subscribers,
+                'monthly_revenue' => round($monthlyRevenue, 2),
+                'retention_rate' => $packRetention,
+                'growth' => $growth,
+                'is_best_performer' => false,
+            ];
+
+            $bestRevenue = max($bestRevenue, $monthlyRevenue);
+        }
+
+        if ($bestRevenue > 0) {
+            foreach ($packStats as &$packStat) {
+                if (abs($packStat['monthly_revenue'] - round($bestRevenue, 2)) < 0.01) {
+                    $packStat['is_best_performer'] = true;
+                }
+            }
+            unset($packStat);
+        }
+
+        $stats = [
+            'total_revenue' => round($totalRevenue, 2),
+            'revenue_trend' => $revenueTrend,
+            'new_donors' => $newDonors,
+            'donors_trend' => $donorsTrend,
+            'median_donation' => round($medianDonation, 2),
+            'average_donation' => round($averageDonation, 2),
+            'highest_donation' => round($highestDonation, 2),
+            'retention_rate' => $retentionRate,
+            'regular_donors' => $regularDonors,
+            'average_donor_lifetime' => $averageLifetime,
+            'distribution_data' => [
+                'ranges' => array_column($ranges, 'label'),
+                'counts' => $distributionCounts,
+            ],
+            'revenue_data' => [
+                'labels' => array_values(array_column($monthsMap, 'label')),
+                'values' => array_values(array_map(static fn (array $month) => round($month['value'], 2), $monthsMap)),
+            ],
+            'donors_data' => [
+                'labels' => array_column($monthsMap, 'label'),
+                'values' => array_values($donorsByMonth),
+            ],
+            'retention_data' => [
+                'months' => $retentionLabels,
+                'rates' => $retentionRates,
+            ],
+            'packs_performance' => $packStats,
+        ];
+
+        $this->render('creator/stats', [
+            'creator' => $this->creator,
+            'stats' => $stats,
+            'pageTitle' => 'Statistiques détaillées',
+        ], 'creator_dashboard');
+    }
+
     private function getAchievements($stats) {
         $achievements = [];
-        
+
         // Badges basés sur le montant total des dons
         if ($stats['total_donations'] >= 1000) {
             $achievements[] = [

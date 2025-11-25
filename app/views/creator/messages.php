@@ -1,5 +1,13 @@
 <div class="card messages-page-card">
-    <h1><i class="fas fa-envelope"></i> Messages des donateurs</h1>
+    <header class="page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Messagerie</p>
+            <h2 class="page-section-title">
+                <i class="fas fa-envelope"></i>
+                Messages des donateurs
+            </h2>
+        </div>
+    </header>
 
     <div class="messages-actions">
         <div class="search-box">

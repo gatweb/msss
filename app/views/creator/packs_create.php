@@ -1,6 +1,11 @@
 <?php $hideSidebar = true; ?>
 <div class="container mt-4">
-    <h1 class="mb-4">Créer un nouveau pack</h1>
+    <header class="page-section-header mb-4">
+        <div class="page-section-heading">
+            <p class="page-section-label">Offres</p>
+            <h2 class="page-section-title">Créer un nouveau pack</h2>
+        </div>
+    </header>
     <form action="/profile/packs/create" method="post" class="pack-form-container">
         <div class="mb-3">
             <label for="name" class="form-label">Nom du pack</label>
@@ -27,4 +32,3 @@
 <style>
 .form-label { font-weight: 500; }
 </style>
-<?php echo 'TEST'; ?>

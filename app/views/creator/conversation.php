@@ -4,7 +4,12 @@
 ?>
 
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Conversation avec <?= htmlspecialchars($otherUser['name']) ?></h1>
+    <header class="page-section-header mb-4">
+        <div class="page-section-heading">
+            <p class="page-section-label">Messagerie</p>
+            <h2 class="page-section-title">Conversation avec <?= htmlspecialchars($otherUser['name']) ?></h2>
+        </div>
+    </header>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
