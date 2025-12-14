@@ -87,9 +87,11 @@ function truncate($string, $length = 100, $append = '...') {
  */
 if (!function_exists('url')) {
     function url($path = '') {
-        $base = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $base .= $_SERVER['HTTP_HOST'];
-        return $base . '/' . ltrim($path, '/');
+        $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+        $scheme = $isSecure ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+
+        return rtrim($scheme . $host, '/') . '/' . ltrim($path, '/');
     }
 }
 
@@ -465,4 +467,133 @@ function cachePath() {
  */
 function mediaPath() {
     return defined('MEDIA_PATH') ? MEDIA_PATH : ROOT_PATH . '/public/media';
+}
+
+if (!function_exists('format_money')) {
+    function format_money($amount, string $currency = '€', int $decimals = 2, string $decimalSeparator = ',', string $thousandSeparator = ' '): string {
+        if (!is_numeric($amount)) {
+            $amount = 0;
+        }
+
+        $formatted = number_format((float) $amount, $decimals, $decimalSeparator, $thousandSeparator);
+
+        return trim($formatted . ' ' . $currency);
+    }
+}
+
+if (!function_exists('flash_messages')) {
+    function flash_messages(): array {
+        $messages = [];
+
+        if (isset($_SESSION['flash'])) {
+            $flash = $_SESSION['flash'];
+
+            if (isset($flash['message'])) {
+                $messages[] = $flash;
+            } elseif (is_array($flash)) {
+                foreach ($flash as $item) {
+                    if (is_array($item) && isset($item['message'])) {
+                        $messages[] = $item;
+                    }
+                }
+            }
+
+            unset($_SESSION['flash']);
+        }
+
+        if (isset($_SESSION['flash_messages'])) {
+            foreach ($_SESSION['flash_messages'] as $type => $entries) {
+                foreach ((array) $entries as $entry) {
+                    if (is_array($entry) && isset($entry['message'])) {
+                        $messages[] = [
+                            'type' => $entry['type'] ?? $type,
+                            'message' => $entry['message'],
+                        ];
+                    } else {
+                        $messages[] = [
+                            'type' => is_string($type) ? $type : 'info',
+                            'message' => (string) $entry,
+                        ];
+                    }
+                }
+            }
+
+            unset($_SESSION['flash_messages']);
+        }
+
+        return $messages;
+    }
+}
+
+if (!function_exists('flash_class')) {
+    function flash_class(string $type): string {
+        return match (strtolower($type)) {
+            'error', 'danger' => 'alert-danger',
+            'warning' => 'alert-warning',
+            'success' => 'alert-success',
+            'info' => 'alert-info',
+            default => 'alert-secondary',
+        };
+    }
+}
+
+if (!function_exists('paginate')) {
+    function paginate(int $current, int $total, array $params = []): array {
+        $current = max(1, $current);
+        $total = max(1, $total);
+
+        $cleanParams = [];
+        foreach ($params as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $cleanParams[$key] = $value;
+        }
+
+        $buildUrl = static function (int $page) use ($cleanParams): string {
+            $query = http_build_query(array_merge($cleanParams, ['page' => $page]));
+
+            return $query ? '?' . $query : '?page=' . $page;
+        };
+
+        $pages = [];
+        for ($page = 1; $page <= $total; $page++) {
+            $pages[] = [
+                'number' => $page,
+                'url' => $buildUrl($page),
+                'is_current' => $page === $current,
+            ];
+        }
+
+        return [
+            'current' => $current,
+            'total' => $total,
+            'has_previous' => $current > 1,
+            'has_next' => $current < $total,
+            'previous_url' => $current > 1 ? $buildUrl($current - 1) : null,
+            'next_url' => $current < $total ? $buildUrl($current + 1) : null,
+            'pages' => $pages,
+        ];
+    }
+}
+
+if (!function_exists('is_active_path')) {
+    function is_active_path(string $uri, ?string $currentUri = null, bool $exact = false): bool {
+        $currentUri = $currentUri ?? ($_SERVER['REQUEST_URI'] ?? '/');
+
+        if ($exact) {
+            return $currentUri === $uri;
+        }
+
+        if ($uri === '/') {
+            return $currentUri === '/';
+        }
+
+        if ($uri === '/dashboard') {
+            return $currentUri === '/dashboard' || str_starts_with($currentUri, '/dashboard/stats');
+        }
+
+        return str_starts_with($currentUri, $uri);
+    }
 }

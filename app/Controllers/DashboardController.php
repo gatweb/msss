@@ -2,20 +2,16 @@
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\BaseController;
-use App\Models\Creator;
-use App\Models\Donation;
-use App\Models\Pack;
-
 use App\Core\Database;
 use App\Core\View;
-use App\Core\Auth;
 use App\Repositories\CreatorRepository;
-use App\Repositories\PackRepository;
-use App\Repositories\LinkRepository;
 use App\Repositories\DonationRepository;
 use App\Repositories\DonatorNoteRepository;
-use App\Controllers\AiToolsController;
+use App\Repositories\LinkRepository;
+use App\Repositories\PackRepository;
+use DateTimeImmutable;
 
 class DashboardController extends BaseController { // Ajouter "extends BaseController"
     private $donatorNoteRepo;
@@ -29,8 +25,8 @@ class DashboardController extends BaseController { // Ajouter "extends BaseContr
     private $aiToolsController;
     protected $creator;
 
-    public function __construct(Database $db, View $view, Auth $auth, CreatorRepository $creatorRepo, PackRepository $packRepo, LinkRepository $linkRepo, DonationRepository $donationRepo, AiToolsController $aiToolsController, DonatorNoteRepository $donatorNoteRepo = null) {
-        parent::__construct(); // Appel au constructeur parent
+    public function __construct(Database $db, View $view, Auth $auth, CreatorRepository $creatorRepo, PackRepository $packRepo, LinkRepository $linkRepo, DonationRepository $donationRepo, AiToolsController $aiToolsController, ?DonatorNoteRepository $donatorNoteRepo = null) {
+        parent::__construct($db, $view, $auth, null, $creatorRepo); // Appel au constructeur parent avec injection
         $this->db = $db;
         $this->view = $view;
         $this->auth = $auth;
@@ -74,14 +70,63 @@ class DashboardController extends BaseController { // Ajouter "extends BaseContr
             $donor_count = (int) $this->donationRepo->getUniqueDonorsCount($creatorId);
             $donation_goal = isset($creator['donation_goal']) ? (float)$creator['donation_goal'] : 1000;
             $progress_percentage = $donation_goal > 0 ? min(100, ($total_donations / $donation_goal) * 100) : 0;
-            $recent_donations = $this->donationRepo->getDonationsByCreator($creatorId, 4);
+            $recentDonationsRaw = $this->donationRepo->getDonationsByCreator($creatorId, 4);
+
+            $typeColors = [
+                'fan_fidele' => '#ffd700',
+                'pack' => '#7C83FD',
+                'ponctuel' => '#34d399',
+                'default' => '#f59e42',
+            ];
+
+            $recent_donations = array_map(static function (array $donation) use ($typeColors) {
+                $name = trim((string)($donation['donor_name'] ?? ''));
+                $initials = '';
+
+                if ($name !== '') {
+                    foreach (preg_split('/\s+/', $name) as $part) {
+                        if ($part === '') {
+                            continue;
+                        }
+
+                        $initials .= mb_strtoupper(mb_substr($part, 0, 1));
+                        if (mb_strlen($initials) >= 2) {
+                            break;
+                        }
+                    }
+                }
+
+                if ($initials === '') {
+                    $initials = '👤';
+                }
+
+                $typeKey = strtolower((string)($donation['donation_type'] ?? ''));
+                $typeColor = $typeColors[$typeKey] ?? $typeColors['default'];
+
+                $createdAt = isset($donation['created_at']) ? new DateTimeImmutable($donation['created_at']) : new DateTimeImmutable();
+
+                return [
+                    'donor_name' => $donation['donor_name'] ?? 'Anonyme',
+                    'donor_email' => $donation['donor_email'] ?? '',
+                    'amount' => (float)($donation['amount'] ?? 0),
+                    'donation_type' => $donation['donation_type'] ?? 'Inconnu',
+                    'type_color' => $typeColor,
+                    'comment' => $donation['comment'] ?? null,
+                    'initials' => $initials,
+                    'created_at' => $createdAt,
+                    'profile_url' => '/dashboard/donators/profile?email=' . urlencode($donation['donor_email'] ?? ''),
+                ];
+            }, $recentDonationsRaw);
 
             $stats = [
                 'total_donations' => $total_donations,
                 'donor_count' => $donor_count,
                 'recent_donations' => $recent_donations,
                 'donation_goal' => $donation_goal,
-                'progress_percentage' => $progress_percentage
+                'progress_percentage' => round($progress_percentage),
+                'goal_reached' => $progress_percentage >= 100,
+                'close_to_goal' => $progress_percentage >= 80 && $progress_percentage < 100,
+                'remaining_amount' => max(0, $donation_goal - $total_donations),
             ];
 
             // --- DONATEURS pour le dashboard ---
@@ -116,10 +161,9 @@ class DashboardController extends BaseController { // Ajouter "extends BaseContr
                 'pageTitle' => $pageTitle
             ];
 
-            error_log("Chargement de la vue 'creator/index' avec le layout 'creator_dashboard' via setLayout() et les données : " . print_r($viewData, true)); // Modif log
+            error_log("Chargement de la vue 'creator/dashboard' avec le layout 'creator_dashboard' et les données : " . print_r($viewData, true));
 
-            $this->view->setLayout('creator_dashboard'); // Définir explicitement le layout
-            $this->render('creator/index', $viewData);     // Appeler render sans le 3ème argument
+            $this->render('creator/dashboard', $viewData, 'creator_dashboard');
 
         } catch (\Exception $e) {
             error_log("Erreur critique dans le dashboard : " . $e->getMessage());
