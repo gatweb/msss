@@ -1,10 +1,15 @@
 
 <div class="profile-container">
-    <div class="profile-header">
-        <h1>Mon profil</h1>
-        <a href="/profile/<?= htmlspecialchars($creator['username']) ?>" class="btn-view-public">
-            <i class="fas fa-eye"></i> Voir mon profil public
-        </a>
+    <div class="profile-header page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Identité</p>
+            <h2 class="page-section-title">Mon profil</h2>
+        </div>
+        <div class="page-section-actions">
+            <a href="/profile/<?= htmlspecialchars($creator['username']) ?>" class="btn-view-public btn btn-outline">
+                <i class="fas fa-eye"></i> Voir mon profil public
+            </a>
+        </div>
     </div>
 
     <form method="POST" action="/profile/update" class="profile-form" enctype="multipart/form-data">

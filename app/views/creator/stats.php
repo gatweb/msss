@@ -1,8 +1,11 @@
 <?php ob_start(); ?>
 <div class="stats-dashboard">
-    <div class="section-title-bar">
-        <h1>Statistiques détaillées</h1>
-        <div class="section-title-bar">
+    <div class="section-title-bar page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Analyses</p>
+            <h2 class="page-section-title">Statistiques détaillées</h2>
+        </div>
+        <div class="section-title-bar page-section-actions">
             <div class="date-range">
                 <button class="btn btn-outline" onclick="updateDateRange('7d')">7 jours</button>
                 <button class="btn btn-outline active" onclick="updateDateRange('30d')">30 jours</button>

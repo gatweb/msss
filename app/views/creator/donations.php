@@ -10,9 +10,12 @@ $totalPages = $totalPages ?? 1;
 ?>
 <div class="dashboard-container">
     <!-- En-tête -->
-    <div class="section-title-bar">
-        <h1>Gestion des Dons</h1>
-        <div class="header-actions">
+    <div class="section-title-bar page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Finances</p>
+            <h2 class="page-section-title">Gestion des dons</h2>
+        </div>
+        <div class="header-actions page-section-actions">
             <button class="btn btn-outline" id="exportDonations">
                 <i class="fas fa-download"></i> Exporter
             </button>

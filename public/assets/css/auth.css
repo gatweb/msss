@@ -82,6 +82,15 @@
 .strength-bar.medium { background: var(--warning-color); }
 .strength-bar.strong { background: var(--success-color); }
 
+
+.password-strength { height: 4px; background: rgba(0,0,0,0.08); border-radius: var(--radius-sm); overflow: hidden; }
+
+.strength-bar { height: 100%; width: 0; transition: width 0.3s ease; }
+
+.strength-bar.weak { background: var(--danger-color); }
+.strength-bar.medium { background: var(--warning-color); }
+.strength-bar.strong { background: var(--success-color); }
+
 .auth-footer {
     text-align: center;
     color: var(--text-color-muted);
@@ -92,3 +101,4 @@
     color: var(--primary-color);
     font-weight: 600;
 }
+

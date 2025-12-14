@@ -4,7 +4,12 @@
 ?>
 
 <div class="content-container">
-    <h1><?= htmlspecialchars($pageTitle ?? 'Paramètres') ?></h1>
+    <header class="page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Espace créatrice</p>
+            <h2 class="page-section-title"><?= htmlspecialchars($pageTitle ?? 'Paramètres') ?></h2>
+        </div>
+    </header>
     
     <p>Ici, vous pourrez bientôt gérer les paramètres de votre compte.</p>
 

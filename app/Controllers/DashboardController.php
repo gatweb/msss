@@ -11,6 +11,7 @@ use App\Repositories\DonationRepository;
 use App\Repositories\DonatorNoteRepository;
 use App\Repositories\LinkRepository;
 use App\Repositories\PackRepository;
+use DateInterval;
 use DateTimeImmutable;
 
 class DashboardController extends BaseController { // Ajouter "extends BaseController"

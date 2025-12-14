@@ -1,14 +1,19 @@
 <?php ob_start(); ?>
 <!-- Début du contenu principal de la page Packs -->
-<div class="row">
-    <div class="col s12">
-        <div class="right-align" style="margin-bottom:20px;">
-            <a href="/profile/packs/create" class="btn waves-effect waves-light blue"><i class="fas fa-plus left"></i>Ajouter un pack</a>
-        </div>
+<header class="page-section-header">
+    <div class="page-section-heading">
+        <p class="page-section-label">Offres</p>
+        <h2 class="page-section-title">Mes packs de dons</h2>
     </div>
-</div>
+    <div class="page-section-actions">
+        <a href="/profile/packs/create" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            <span>Ajouter un pack</span>
+        </a>
+    </div>
+</header>
+
 <div class="row">
-    <h1>Mes packs de dons</h1>
 
     <?php if (empty($packs)): ?>
         <div class="alert alert-info">Aucun pack pour le moment.</div>

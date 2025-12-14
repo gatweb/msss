@@ -11,7 +11,12 @@ $pageTitle = 'Outils IA';
 ?>
 
 <div class="content-container">
-    <h1><?= htmlspecialchars($pageTitle) ?></h1>
+    <header class="page-section-header">
+        <div class="page-section-heading">
+            <p class="page-section-label">Assistants</p>
+            <h2 class="page-section-title"><?= htmlspecialchars($pageTitle ?? 'Outils IA') ?></h2>
+        </div>
+    </header>
     <p>Cette section est en cours de construction. Revenez bientôt pour découvrir nos outils IA !</p>
     
     <?php

@@ -83,12 +83,84 @@ img {
     display: block;
 }
 
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: var(--primary-color);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
 ul { list-style: none; }
 
 .site-shell {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+.container {
+    width: var(--container-width);
+    margin-inline: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Header & navigation
+   -------------------------------------------------------------------------- */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    width: 100%;
+    padding-block: 0.45rem;
+    margin-bottom: 1.75rem;
+    background: rgba(246, 244, 249, 0.92);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.site-header__inner {
+    width: var(--container-width);
+    margin-inline: auto;
+    min-height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: clamp(0.75rem, 1.1vw, 1.75rem);
+    padding: 0.4rem clamp(0.9rem, 0.65rem + 1vw, 1.8rem);
+}
+
+.site-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--heading-color);
+}
+
+.site-logo img {
+    height: 18px;
+    width: auto;
+    filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.12));
+}
+
+.site-logo span {
+    letter-spacing: 0.08em;
+}
+
 }
 
 .container {
@@ -201,6 +273,87 @@ ul { list-style: none; }
 }
 
 /* --------------------------------------------------------------------------
+   Section headers & contextual actions
+   -------------------------------------------------------------------------- */
+.page-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.page-section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.page-section-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-color-muted);
+}
+
+.page-section-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--heading-color);
+    margin: 0;
+}
+
+.page-section-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons & badges
+   -------------------------------------------------------------------------- */
+.btn,
+button,
+input[type="submit"],
+input[type="button"] {
+    border: none;
+    border-radius: 999px;
+    padding: 0.65rem 1.3rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: var(--primary-color);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.btn:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    background: var(--primary-color-dark);
+    box-shadow: 0 14px 30px rgba(90, 96, 232, 0.28);
+    transform: translateY(-1px);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+}
+
+.site-actions .btn,
+.site-actions .btn-ghost {
+    font-size: 0.92rem;
+    padding-inline: 1.1rem;
+}
+
+/* --------------------------------------------------------------------------
    Buttons & badges
    -------------------------------------------------------------------------- */
 .btn,
@@ -256,6 +409,24 @@ input[type="button"]:hover {
     color: var(--accent-color);
     font-size: 0.75rem;
     font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces & sections
+   -------------------------------------------------------------------------- */
+.surface,
+.card,
+.dashboard-card {
+    background: var(--background-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 1.75rem;
+}
+
+.section {
+    margin-block: 2.5rem;
+}
+
 }
 
 /* --------------------------------------------------------------------------
@@ -460,6 +631,19 @@ legend {
     background: rgba(90, 96, 232, 0.05);
 }
 
+}
+
+.table th,
+.table td {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr:hover {
+    background: rgba(90, 96, 232, 0.05);
+}
+
 /* --------------------------------------------------------------------------
    Responsive behaviour
    -------------------------------------------------------------------------- */
@@ -467,6 +651,82 @@ legend {
     .site-header__inner {
         width: min(960px, 100% - 2rem);
     }
+}
+
+@media (max-width: 900px) {
+    .site-header__inner {
+        justify-content: center;
+        gap: 0.85rem;
+    }
+
+    .site-logo,
+    .site-actions {
+        justify-content: center;
+        flex: 1 1 100%;
+        text-align: center;
+    }
+
+    .site-nav {
+        order: 3;
+        width: 100%;
+    }
+
+    .site-actions {
+        order: 2;
+    }
+}
+
+@media (max-width: 680px) {
+    .site-nav__list {
+        gap: 0.45rem;
+    }
+
+    .site-nav__link {
+        padding: 0.45rem 0.75rem;
+    }
+
+    .site-actions {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .site-footer__inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .legacy-page__inner {
+        width: min(100%, calc(100% - 1.5rem));
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Legacy class compatibility
+   -------------------------------------------------------------------------- */
+.nav-list,
+.user-nav,
+.user-header .nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    color: var(--text-color-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
 }
 
 @media (max-width: 900px) {
@@ -580,3 +840,4 @@ legend {
 .me-2 { margin-right: 0.5rem; }
 .mb-3 { margin-bottom: 1rem; }
 .mb-4 { margin-bottom: 1.5rem; }
+
