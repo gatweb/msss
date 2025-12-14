@@ -11,7 +11,6 @@ use App\Repositories\DonationRepository;
 use App\Repositories\DonatorNoteRepository;
 use App\Repositories\LinkRepository;
 use App\Repositories\PackRepository;
-use DateInterval;
 use DateTimeImmutable;
 
 class DashboardController extends BaseController { // Ajouter "extends BaseController"
@@ -26,8 +25,8 @@ class DashboardController extends BaseController { // Ajouter "extends BaseContr
     private $aiToolsController;
     protected $creator;
 
-    public function __construct(Database $db, View $view, Auth $auth, CreatorRepository $creatorRepo, PackRepository $packRepo, LinkRepository $linkRepo, DonationRepository $donationRepo, AiToolsController $aiToolsController, DonatorNoteRepository $donatorNoteRepo = null) {
-        parent::__construct(); // Appel au constructeur parent
+    public function __construct(Database $db, View $view, Auth $auth, CreatorRepository $creatorRepo, PackRepository $packRepo, LinkRepository $linkRepo, DonationRepository $donationRepo, AiToolsController $aiToolsController, ?DonatorNoteRepository $donatorNoteRepo = null) {
+        parent::__construct($db, $view, $auth, null, $creatorRepo); // Appel au constructeur parent avec injection
         $this->db = $db;
         $this->view = $view;
         $this->auth = $auth;

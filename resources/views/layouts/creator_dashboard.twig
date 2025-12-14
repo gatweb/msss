@@ -3,15 +3,15 @@
 {% block title %}{{ pageTitle|default('Dashboard Créateur') }}{% endblock %}
 
 {% block head_assets %}
-    <link rel="icon" type="image/png" href="/assets/img/favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/common.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/creator-dashboard.css') }}">
 {% endblock %}
 
-{% block body_class %}site-shell creator-dashboard{% endblock %}
+{% block body_class %}creator-dashboard{% endblock %}
 
 {% block body %}
     {% include 'layouts/partials/creator_header.twig' %}
@@ -25,15 +25,17 @@
             {% endif %}
 
             {% if dailyTip is defined and dailyTip %}
-                <div class="dashboard-tip">
-                    <i class="bi bi-lightbulb-fill"></i>
+                <div class="alert alert-info alert-dismissible fade show mb-4 dashboard-tip" role="alert">
+                    <i class="bi bi-lightbulb-fill me-2"></i>
                     <strong>Conseil du jour :</strong> {{ dailyTip }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endif %}
 
             {% for message in flash_messages() %}
-                <div class="flash-message flash-message--{{ message.type|default('info') }}">
+                <div class="alert {{ flash_class(message.type|default('info')) }} alert-dismissible fade show mb-3" role="alert">
                     {{ message.message|default('Message indéfini') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
 
@@ -45,18 +47,6 @@
 {% block scripts %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/dashboard.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('[data-nav-toggle]').forEach((toggle) => {
-                toggle.addEventListener('click', () => {
-                    const target = document.querySelector(toggle.dataset.target);
-                    if (target) {
-                        target.classList.toggle('is-open');
-                    }
-                });
-            });
-        });
-    </script>
     {% if scripts is defined %}
         {% for script in scripts %}
             <script src="{{ script }}"></script>
