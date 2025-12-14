@@ -6,14 +6,12 @@
     <title><?= isset($pageTitle) ? $pageTitle . ' - ' : '' ?>Msss</title>
     <!-- Styles du dashboard utilisés partout -->
     <link rel="stylesheet" href="/assets/css/common.css">
-<link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/dashboard.css">
 
     <link rel="stylesheet" href="/assets/css/packs.css">
     <link rel="stylesheet" href="/assets/css/pack-forms.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="dashboard-layout">

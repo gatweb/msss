@@ -1,21 +1,31 @@
-<!-- START ADMIN HEADER -->
-<header class="admin-header">
-    <div class="header-content">
-        <div class="logo">
-            <a href="/profile/admin/creators">
-                <i class="fas fa-crown"></i>
-            </a>
-        </div>
-        <nav class="user-header">
-            <ul class="nav-list">
-                <li><a href="/profile/admin/creators" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], '/profile/admin/creators') === 0 ? 'active' : '' ?>">
-                    <i class="fas fa-users"></i> Créatrices</a></li>
-                <li><a href="/" class="nav-item">
-                    <i class="fas fa-home"></i> Retour au site</a></li>
-                <li><a href="/logout" class="nav-item">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
-<!-- END ADMIN HEADER -->
+<?php
+$headerClasses = 'admin-header';
+$logoHref = '/profile/admin/creators';
+$logoLabel = 'Administration';
+$logoIcon = 'fas fa-crown';
+$logoImage = null;
+$navLinks = [
+    [
+        'label' => 'Créatrices',
+        'href' => '/profile/admin/creators',
+        'icon' => 'fas fa-users',
+        'match' => '/profile/admin/creators',
+    ],
+    [
+        'label' => 'Retour au site',
+        'href' => '/',
+        'icon' => 'fas fa-home',
+        'match' => '/',
+    ],
+];
+
+$actionButtons = [
+    [
+        'label' => 'Déconnexion',
+        'href' => '/logout',
+        'icon' => 'fas fa-sign-out-alt',
+        'variant' => 'primary',
+    ],
+];
+
+require __DIR__ . '/header_partial.php';

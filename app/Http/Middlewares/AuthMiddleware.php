@@ -29,6 +29,7 @@ class AuthMiddleware {
                 // Le token est valide, connecter l'utilisateur
                 $_SESSION['creator_id'] = $creator['id'];
                 $_SESSION['creator_name'] = $creator['name'];
+                $_SESSION['creator_username'] = $creator['username'] ?? null;
                 $_SESSION['creator_role'] = $creator['role'];
 
                 // Renouveler le token pour 30 jours

@@ -161,7 +161,7 @@
                                 <td><?= $pack['subscribers'] ?></td>
                                 <td><?= number_format($pack['monthly_revenue'], 2) ?> €</td>
                                 <td>
-                                    <div class="retention-bar" style="--retention: <?= $pack['retention_rate'] ?>%">
+                                    <div class="retention-bar" style="--retention: <?= $pack['retention_rate'] ?>%" data-value="<?= number_format($pack['retention_rate'], 1) ?>%">
                                         <?= number_format($pack['retention_rate'], 1) ?>%
                                     </div>
                                 </td>
@@ -437,6 +437,7 @@
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Configuration des graphiques
 const chartOptions = {
@@ -444,108 +445,109 @@ const chartOptions = {
     maintainAspectRatio: false
 };
 
-// Graphique des revenus
 const revenueData = <?= json_encode($stats['revenue_data']) ?>;
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels: revenueData.labels,
-        datasets: [{
-            label: 'Revenus',
-            data: revenueData.values,
-            borderColor: '#6c5ce7',
-            backgroundColor: 'rgba(108, 92, 231, 0.1)',
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        ...chartOptions,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: value => value + ' €'
-                }
-            }
-        }
-    }
-});
-
-// Graphique des nouveaux donateurs
 const donorsData = <?= json_encode($stats['donors_data']) ?>;
-new Chart(document.getElementById('donorsChart'), {
-    type: 'bar',
-    data: {
-        labels: donorsData.labels,
-        datasets: [{
-            label: 'Nouveaux donateurs',
-            data: donorsData.values,
-            backgroundColor: '#a29bfe'
-        }]
-    },
-    options: chartOptions
-});
-
-// Distribution des dons
 const distributionData = <?= json_encode($stats['distribution_data']) ?>;
-new Chart(document.getElementById('donationDistributionChart'), {
-    type: 'bar',
-    data: {
-        labels: distributionData.ranges,
-        datasets: [{
-            label: 'Nombre de dons',
-            data: distributionData.counts,
-            backgroundColor: '#74b9ff'
-        }]
-    },
-    options: {
-        ...chartOptions,
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: 'Montant du don (€)'
-                }
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: 'Nombre de dons'
-                }
-            }
-        }
-    }
-});
-
-// Rétention des donateurs
 const retentionData = <?= json_encode($stats['retention_data']) ?>;
-new Chart(document.getElementById('retentionChart'), {
-    type: 'line',
-    data: {
-        labels: retentionData.months,
-        datasets: [{
-            label: 'Taux de rétention',
-            data: retentionData.rates,
-            borderColor: '#00b894',
-            backgroundColor: 'rgba(0, 184, 148, 0.1)',
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        ...chartOptions,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: value => value + '%'
+
+if (typeof Chart !== 'undefined') {
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revenueData.labels,
+            datasets: [{
+                label: 'Revenus',
+                data: revenueData.values,
+                borderColor: '#6c5ce7',
+                backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            ...chartOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => value + ' €'
+                    }
                 }
             }
         }
-    }
-});
+    });
+
+    new Chart(document.getElementById('donorsChart'), {
+        type: 'bar',
+        data: {
+            labels: donorsData.labels,
+            datasets: [{
+                label: 'Nouveaux donateurs',
+                data: donorsData.values,
+                backgroundColor: '#a29bfe'
+            }]
+        },
+        options: chartOptions
+    });
+
+    new Chart(document.getElementById('donationDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: distributionData.ranges,
+            datasets: [{
+                label: 'Nombre de dons',
+                data: distributionData.counts,
+                backgroundColor: '#74b9ff'
+            }]
+        },
+        options: {
+            ...chartOptions,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Montant du don (€)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Nombre de dons'
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('retentionChart'), {
+        type: 'line',
+        data: {
+            labels: retentionData.months,
+            datasets: [{
+                label: 'Taux de rétention',
+                data: retentionData.rates,
+                borderColor: '#00b894',
+                backgroundColor: 'rgba(0, 184, 148, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            ...chartOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: value => value + '%'
+                    }
+                }
+            }
+        }
+    });
+} else {
+    console.warn('Chart.js n\'est pas disponible, les graphiques ne seront pas affichés.');
+}
 
 // Mise à jour des vues
 function updateDateRange(range) {

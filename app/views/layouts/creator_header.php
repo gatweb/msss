@@ -1,27 +1,41 @@
-<!-- START CREATOR HEADER -->
-<header class="creator-header">
-    <div class="header-content">
-        <div class="logo">
-            <a href="/">
-                <img src="/assets/img/logo.png" alt="Msss Logo">
-            </a>
-        </div>
-        <nav class="user-header">
-            <ul class="nav-list">
-                <li><a href="/profile" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], '/profile') === 0 ? 'active' : '' ?>">
-                    <i class="fas fa-user"></i> Profil</a></li>
-                <li><a href="/dashboard" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], '/dashboard') === 0 ? 'active' : '' ?>">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="/profile/packs" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], '/profile/packs') === 0 ? 'active' : '' ?>">
-                    <i class="fas fa-box-open"></i> Packs</a></li>
-                <li><a href="/profile/messages" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], '/profile/messages') === 0 ? 'active' : '' ?>">
-                    <i class="fas fa-envelope"></i> Messages</a></li>
-                <li><a href="/logout" class="nav-item">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
-<!-- END CREATOR HEADER -->
+<?php
+$headerClasses = 'creator-header';
+$logoSubLabel = 'Espace créatrice';
+$navLinks = [
+    [
+        'label' => 'Profil',
+        'href' => '/profile',
+        'match' => '/profile',
+        'exact' => true,
+        'icon' => 'fas fa-user',
+    ],
+    [
+        'label' => 'Dashboard',
+        'href' => '/dashboard',
+        'match' => '/dashboard',
+        'icon' => 'fas fa-gauge-high',
+    ],
+    [
+        'label' => 'Packs',
+        'href' => '/profile/packs',
+        'match' => '/profile/packs',
+        'icon' => 'fas fa-box',
+    ],
+    [
+        'label' => 'Messages',
+        'href' => '/profile/messages',
+        'match' => '/profile/messages',
+        'icon' => 'fas fa-envelope',
+    ],
+];
 
-        <!-- Content Container -->
+$actionButtons = [
+    [
+        'label' => 'Déconnexion',
+        'href' => '/logout',
+        'icon' => 'fas fa-sign-out-alt',
+        'variant' => 'primary',
+    ],
+];
+
+require __DIR__ . '/header_partial.php';

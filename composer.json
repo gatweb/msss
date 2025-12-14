@@ -12,5 +12,21 @@
         "psr-4": {
             "App\\": "app/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "check:types": "vendor/bin/phpstan analyse --memory-limit=512M",
+        "lint": "vendor/bin/php-cs-fixer fix --dry-run --diff --quiet",
+        "lint:fix": "vendor/bin/php-cs-fixer fix",
+        "check": [
+            "@lint",
+            "@check:types",
+            "@test"
+        ]
     }
 }

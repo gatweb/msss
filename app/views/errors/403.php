@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 - Accès interdit | <?= appName() ?></title>
-    <link rel="stylesheet" href="<?= assetPath() ?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?= assetPath() ?>/assets/css/common.css">
     <link rel="stylesheet" href="<?= assetPath() ?>/assets/css/errors.css">
 </head>
 <body class="error-page">
