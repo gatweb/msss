@@ -17,15 +17,22 @@ class BaseController {
     protected $creator;
     protected $creatorRepository;
 
-    public function __construct() {
-        // Initialiser les dépendances de base
-        $this->db = $this->pdo = Database::getInstance();
-        $this->view = new View();
-        $this->auth = new Auth();
-        $this->flash = new Flash();
+    public function __construct(
+        ?Database $db = null,
+        ?View $view = null,
+        ?Auth $auth = null,
+        ?Flash $flash = null,
+        ?CreatorRepository $creatorRepository = null
+    ) {
+        // Initialiser les dépendances de base avec possibilité d'injection pour les tests/contrôleurs
+        $this->db = $db ?: Database::getInstance();
+        $this->pdo = $this->db;
+        $this->view = $view ?: new View();
+        $this->auth = $auth ?: new Auth();
+        $this->flash = $flash ?: new Flash();
 
         // Initialiser le repository nécessaire AVANT de l'utiliser
-        $this->creatorRepository = new CreatorRepository($this->db);
+        $this->creatorRepository = $creatorRepository ?: new CreatorRepository($this->db);
 
         // Charger le créateur si l'utilisateur est connecté et est un créateur
         /* Suppression de la logique de chargement du créateur ici.

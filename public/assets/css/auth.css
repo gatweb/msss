@@ -37,6 +37,11 @@
     color: var(--text-color-muted);
 }
 
+.auth-header .site-logo img {
+    height: 145px;
+    margin-bottom: 1rem;
+}
+
 .auth-form { display: grid; gap: 1.1rem; }
 
 .auth-form .input-group {
@@ -68,6 +73,15 @@
     color: var(--text-color-muted);
     cursor: pointer;
 }
+
+.password-strength { height: 4px; background: rgba(0,0,0,0.08); border-radius: var(--radius-sm); overflow: hidden; }
+
+.strength-bar { height: 100%; width: 0; transition: width 0.3s ease; }
+
+.strength-bar.weak { background: var(--danger-color); }
+.strength-bar.medium { background: var(--warning-color); }
+.strength-bar.strong { background: var(--success-color); }
+
 
 .password-strength { height: 4px; background: rgba(0,0,0,0.08); border-radius: var(--radius-sm); overflow: hidden; }
 
