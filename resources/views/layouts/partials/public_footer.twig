@@ -1,9 +1,24 @@
-<footer class="site-footer">
-    <div class="site-footer__inner">
-        <p>&copy; {{ 'now'|date('Y') }} Msss &mdash; Tous droits réservés.</p>
-        <nav class="site-footer__links">
-            <a href="mailto:contact@maitress.es">Support</a>
-            <a href="/mentions-legales">Mentions légales</a>
-        </nav>
+<footer class="bg-secondary-900 border-t border-secondary-800 text-secondary-400 py-12 mt-auto">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="font-heading font-bold text-xl text-white tracking-tight">Msss</span>
+                <span class="text-secondary-600">&copy; {{ 'now'|date('Y') }}</span>
+            </div>
+            
+            <nav class="flex items-center gap-8">
+                <a href="mailto:contact@maitress.es" class="hover:text-white transition-colors duration-200">Support</a>
+                <a href="/mentions-legales" class="hover:text-white transition-colors duration-200">Mentions légales</a>
+            </nav>
+
+            <div class="flex gap-4">
+                <a href="#" class="w-10 h-10 rounded-full bg-secondary-800 flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all duration-300">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-secondary-800 flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all duration-300">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
     </div>
 </footer>

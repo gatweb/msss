@@ -33,13 +33,13 @@ class AuthController extends BaseController {
         $this->view->addScript('/assets/js/auth.js');
 
         $this->render('auth/login.html.twig', [
-            'csrf_token' => Csrf::generateToken(),
+            'csrf_token' => $this->generateCsrfToken(),
             'old' => $old
         ], 'auth');
     }
 
     public function login() {
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error("Session expirée. Veuillez réessayer.");
             $this->redirect('/login');
             return;
@@ -134,13 +134,13 @@ class AuthController extends BaseController {
             unset($_SESSION['old']);
         }
         $this->render('auth/register.html.twig', [
-            'csrf_token' => Csrf::generateToken(),
+            'csrf_token' => $this->generateCsrfToken(),
             'old' => $old
         ], 'auth');
     }
 
     public function register() {
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error("Session expirée. Veuillez réessayer.");
             $this->redirect('/register');
             return;
@@ -243,13 +243,13 @@ class AuthController extends BaseController {
             unset($_SESSION['old']);
         }
         $this->render('auth/forgot-password.html.twig', [
-            'csrf_token' => Csrf::generateToken(),
+            'csrf_token' => $this->generateCsrfToken(),
             'old' => $old
         ], 'auth');
     }
 
     public function forgotPassword() {
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error("Session expirée. Veuillez réessayer.");
             $this->redirect('/forgot-password');
             return;
@@ -299,12 +299,12 @@ class AuthController extends BaseController {
 
         $this->render('auth/reset-password.html.twig', [
             'token' => $token,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'auth');
     }
 
     public function resetPassword() {
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error("Session expirée. Veuillez réessayer.");
             $this->redirect('/login');
             return;

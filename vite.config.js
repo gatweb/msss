@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    publicDir: false, // Prevent copying public/ to outDir since outDir is inside public/
     build: {
         outDir: 'public/assets/build',
         emptyOutDir: true,

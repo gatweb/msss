@@ -1,23 +1,28 @@
-{% set header_classes = header_classes|default('site-header') %}
+{% set header_classes = header_classes|default('bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-primary-100 shadow-sm transition-all duration-300') %}
 <header class="{{ header_classes }}">
-    <div class="site-header__inner">
-        <a href="{{ logo_href|default('/') }}" class="site-logo">
+    <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+        <a href="{{ logo_href|default('/') }}" class="flex items-center gap-3 group">
             {% if logo_image is not same as(false) and logo_image is not empty %}
-                <img src="{{ logo_image }}" alt="{{ logo_label|default('Msss') }}">
+                <img src="{{ logo_image }}" alt="{{ logo_label|default('Msss') }}" class="h-10 w-auto group-hover:scale-105 transition-transform duration-300">
             {% endif %}
             {% if logo_icon %}
-                <i class="{{ logo_icon }}" aria-hidden="true"></i>
+                <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors duration-300">
+                    <i class="{{ logo_icon }} text-xl" aria-hidden="true"></i>
+                </div>
             {% endif %}
-            <span>
-                {{ logo_label|default('Msss') }}
+            <span class="flex flex-col">
+                <span class="font-heading font-bold text-xl text-secondary-900 leading-none group-hover:text-primary-600 transition-colors duration-300">
+                    {{ logo_label|default('Msss') }}
+                </span>
                 {% if logo_sub_label %}
-                    <small>{{ logo_sub_label }}</small>
+                    <small class="text-xs text-secondary-500 font-medium tracking-wide uppercase mt-0.5">{{ logo_sub_label }}</small>
                 {% endif %}
             </span>
         </a>
 
-        <nav id="site-nav" class="site-nav">
-            <ul class="site-nav__list">
+        <!-- Desktop Nav -->
+        <nav id="site-nav" class="hidden md:flex items-center gap-8">
+            <ul class="flex items-center gap-6">
                 {% for link in nav_links %}
                     {% set match_path = link.match|default(link.href) %}
                     {% set exact = link.exact|default(false) %}
@@ -25,32 +30,51 @@
                     {% set active = link.is_active|default(computed_active) %}
                     <li>
                         <a href="{{ link.href }}"
-                           class="site-nav__link{{ active ? ' is-active' : '' }}">
+                           class="relative font-medium text-sm transition-colors duration-200 {{ active ? 'text-primary-600 font-semibold' : 'text-secondary-600 hover:text-primary-600' }}">
                             {% if link.icon %}
-                                <i class="{{ link.icon }}" aria-hidden="true"></i>
+                                <i class="{{ link.icon }} mr-1.5 opacity-80" aria-hidden="true"></i>
                             {% endif %}
                             {{ link.label }}
+                            {% if active %}
+                                <span class="absolute -bottom-6 left-0 w-full h-0.5 bg-primary-500 rounded-t-full"></span>
+                            {% endif %}
                         </a>
                     </li>
                 {% endfor %}
             </ul>
         </nav>
 
+        <!-- Desktop Actions -->
         {% if action_buttons %}
-            <div class="site-actions">
+            <div class="hidden md:flex items-center gap-3">
                 {% for button in action_buttons %}
                     {% set variant = button.variant|default('ghost') %}
-                    {% set class_name = variant == 'primary' ? 'btn' : 'btn-ghost' %}
-                    <a class="{{ class_name }}"
-                       href="{{ button.href }}"
-                       {% if button.target %}target="{{ button.target }}"{% endif %}>
-                        {% if button.icon %}
-                            <i class="{{ button.icon }}" aria-hidden="true"></i>
-                        {% endif %}
-                        {{ button.label }}
-                    </a>
+                    {% if variant == 'primary' %}
+                        <a href="{{ button.href }}" 
+                           class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/20 active:scale-95 transition-all duration-200"
+                           {% if button.target %}target="{{ button.target }}"{% endif %}>
+                            {% if button.icon %}
+                                <i class="{{ button.icon }}" aria-hidden="true"></i>
+                            {% endif %}
+                            {{ button.label }}
+                        </a>
+                    {% else %}
+                        <a href="{{ button.href }}" 
+                           class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-secondary-600 text-sm font-medium hover:text-primary-600 hover:bg-primary-50 transition-all duration-200"
+                           {% if button.target %}target="{{ button.target }}"{% endif %}>
+                            {% if button.icon %}
+                                <i class="{{ button.icon }}" aria-hidden="true"></i>
+                            {% endif %}
+                            {{ button.label }}
+                        </a>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
+
+        <!-- Mobile Menu Toggle (Basic) -->
+        <button class="md:hidden text-secondary-600 hover:text-primary-600 focus:outline-none">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
     </div>
 </header>

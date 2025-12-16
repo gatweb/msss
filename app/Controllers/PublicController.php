@@ -20,7 +20,7 @@ class PublicController extends BaseController {
     
     public function index()
     {
-        $creators = $this->creatorRepository->getAllCreators();
+        $creators = $this->creatorRepository->getActiveCreators();
         $this->view->setTitle('Découvrez nos Créatrices');
         $this->render('public/index.html.twig', [
             'creators' => $creators,
@@ -46,7 +46,7 @@ class PublicController extends BaseController {
             'creator' => $creator,
             'links' => $links,
             'packs' => $packs,
-            'csrf_token' => Csrf::generateToken(),
+            'csrf_token' => $this->generateCsrfToken(),
             'donation_types' => ['PayPal', 'Photo', 'Cadeau', 'Autre']
         ]);
     }

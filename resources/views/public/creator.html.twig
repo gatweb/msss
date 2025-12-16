@@ -3,139 +3,197 @@
 {% set pageTitle = (creator.name|default('Créatrice')) ~ ' - Profil' %}
 
 {% block content %}
-<div class="creator-profile">
-    <div class="creator-header" style="background-image: url('{{ creator.banner_url|default('/assets/img/default-banner.jpg') }}')">
-        <div class="container">
-            <div class="creator-header-content">
-                <div class="creator-avatar">
-                    <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}" alt="{{ creator.name }}">
-                </div>
-                <div class="creator-title">
-                    <h1>{{ creator.name }}</h1>
-                    {% if creator.tagline %}
-                        <p class="creator-tagline">{{ creator.tagline }}</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<div class="min-h-screen bg-secondary-50 pb-20">
+    <!-- Header Banner -->
+    <div class="h-64 md:h-80 w-full relative overflow-hidden bg-secondary-900 group">
+        {% if creator.banner_url %}
+            <img src="{{ creator.banner_url }}" alt="Banner" class="w-full h-full object-cover opacity-80">
+            <div class="absolute inset-0 bg-gradient-to-t from-secondary-900/60 to-transparent"></div>
+        {% else %}
+            <div class="w-full h-full bg-gradient-to-br from-primary-800 to-secondary-900 pattern-grid-lg opacity-100"></div>
+        {% endif %}
     </div>
 
-    <div class="container">
-        <div class="creator-content">
-            <div class="creator-main">
-                <div class="creator-stats-card">
-                    <div class="stat">
-                        <i class="fas fa-gift"></i>
-                        <span class="stat-value">{{ creator.total_donations|default(0)|number_format(2, ',', ' ') }}€</span>
-                        <span class="stat-label">Total des dons</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-users"></i>
-                        <span class="stat-value">{{ creator.donor_count|default(0) }}</span>
-                        <span class="stat-label">Donateurs</span>
-                    </div>
-                    {% if creator.donation_goal is defined and creator.donation_goal %}
-                        {% set goal = creator.donation_goal %}
-                        {% set total = creator.total_donations|default(0) %}
-                        {% set progress_raw = goal > 0 ? (total / goal) * 100 : 0 %}
-                        {% set progress_percentage = progress_raw > 100 ? 100 : progress_raw %}
-                        <div class="progress-section">
-                            <div class="progress-info">
-                                <span>Objectif : {{ goal|number_format(2, ',', ' ') }}€</span>
-                                <span>{{ progress_raw|number_format(1, ',', ' ') }}%</span>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" style="width: {{ progress_percentage }}%"></div>
-                            </div>
-                        </div>
-                    {% endif %}
+    <div class="container mx-auto px-4 relative -mt-32 z-10">
+        <div class="flex flex-col items-center md:items-start md:flex-row gap-6 md:gap-10">
+            <!-- Avatar -->
+            <div class="relative group">
+                <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-white shadow-xl overflow-hidden bg-white">
+                    <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}" 
+                         alt="{{ creator.name }}" 
+                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                 </div>
+                <!-- Status indicator (optional) -->
+                <div class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full" title="En ligne"></div>
+            </div>
 
+            <!-- Identity Info -->
+            <div class="flex-1 text-center md:text-left mt-2 md:mt-16 text-white md:text-secondary-900">
+                <h1 class="font-heading font-extrabold text-3xl md:text-4xl shadow-black/50 md:shadow-none drop-shadow-md md:drop-shadow-none mb-2">
+                    {{ creator.name }}
+                </h1>
+                {% if creator.tagline %}
+                    <p class="text-lg text-white/90 md:text-secondary-600 font-medium max-w-2xl">{{ creator.tagline }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+            <!-- Left Column: Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- About Card -->
                 {% if creator.description %}
-                    <div class="creator-about">
-                        <h2>À propos</h2>
-                        <div class="content">
+                    <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-8">
+                        <h2 class="font-heading font-bold text-xl text-secondary-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-sparkles text-primary-500"></i> À propos
+                        </h2>
+                        <div class="prose prose-secondary max-w-none text-secondary-600 leading-relaxed">
                             {{ creator.description|nl2br }}
                         </div>
                     </div>
                 {% endif %}
 
-                <div class="donation-section">
-                    <h2>Faire un don</h2>
-                    <form action="/donations/add" method="POST" class="donation-form">
+                <!-- Donation Form Card (Mobile/Desktop embedded) -->
+                <div class="bg-white rounded-2xl shadow-lg border border-primary-100 p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-bl-full opacity-50 -mr-10 -mt-10"></div>
+                    
+                    <h2 class="font-heading font-bold text-2xl text-secondary-900 mb-6 relative z-10">
+                        Soutenir {{ creator.name }}
+                    </h2>
+
+                    <form action="/donations/add" method="POST" class="space-y-6 relative z-10">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <input type="hidden" name="creator_id" value="{{ creator.id }}">
                         
-                        <div class="form-group">
-                            <label for="donor_name">Votre nom</label>
-                            <input type="text" id="donor_name" name="donor_name" required>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label for="donor_name" class="text-sm font-semibold text-secondary-700">Votre nom <span class="text-red-500">*</span></label>
+                                <input type="text" id="donor_name" name="donor_name" required 
+                                       class="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="donor_email" class="text-sm font-semibold text-secondary-700">Votre email <span class="text-red-500">*</span></label>
+                                <input type="email" id="donor_email" name="donor_email" required 
+                                       class="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all">
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="donor_email">Votre email</label>
-                            <input type="email" id="donor_email" name="donor_email" required>
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-secondary-700">Montant du don</label>
+                            <div class="grid grid-cols-3 gap-3 mb-3">
+                                <button type="button" onclick="setAmount(5)" class="py-2 rounded-lg border border-secondary-200 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700 transition-all font-medium text-secondary-600">5€</button>
+                                <button type="button" onclick="setAmount(10)" class="py-2 rounded-lg border border-secondary-200 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700 transition-all font-medium text-secondary-600">10€</button>
+                                <button type="button" onclick="setAmount(20)" class="py-2 rounded-lg border border-secondary-200 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700 transition-all font-medium text-secondary-600">20€</button>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3.5 text-secondary-400 font-bold">€</span>
+                                <input type="number" id="amount" name="amount" min="1" step="0.01" required placeholder="Autre montant"
+                                       class="w-full pl-8 pr-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all font-bold text-lg">
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="amount">Montant (€)</label>
-                            <input type="number" id="amount" name="amount" min="1" step="0.01" required>
+                        <div class="space-y-2">
+                            <label for="donation_type" class="text-sm font-semibold text-secondary-700">Type de don</label>
+                            <div class="relative">
+                                <select id="donation_type" name="donation_type" required 
+                                        class="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all appearance-none bg-white">
+                                    {% for type in donation_types %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute right-4 top-4 pointer-events-none text-secondary-400">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="donation_type">Type de don</label>
-                            <select id="donation_type" name="donation_type" required>
-                                {% for type in donation_types %}
-                                    <option value="{{ type }}">{{ type }}</option>
-                                {% endfor %}
-                            </select>
+                        <div class="space-y-2">
+                            <label for="comment" class="text-sm font-semibold text-secondary-700">Message (optionnel)</label>
+                            <textarea id="comment" name="comment" rows="3" placeholder="Un petit mot d'encouragement..." 
+                                      class="w-full px-4 py-3 rounded-xl border border-secondary-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none transition-all resize-none"></textarea>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="comment">Message</label>
-                            <textarea id="comment" name="comment" rows="3" placeholder="Un petit mot pour {{ creator.name }} (optionnel)"></textarea>
-                        </div>
-                        
-                        <button type="submit" class="button button-primary">
-                            <i class="fas fa-heart"></i> Faire un don
+                        <button type="submit" class="w-full py-4 rounded-xl bg-primary-600 text-white font-bold text-lg shadow-lg shadow-primary-500/30 hover:bg-primary-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-heart text-red-200 animate-pulse"></i> Envoyer le don
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="creator-sidebar">
+            <!-- Right Column: Sidebar -->
+            <div class="space-y-8">
+                <!-- Stats Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-6">
+                    <h3 class="font-heading font-bold text-lg text-secondary-900 mb-4">Statistiques</h3>
+                    
+                    {% if creator.donation_goal is defined and creator.donation_goal and creator.donation_goal > 0 %}
+                        {% set goal = creator.donation_goal %}
+                        {% set total = creator.total_donations|default(0) %}
+                        {% set progress_raw = (total / goal) * 100 %}
+                        {% set progress_percentage = progress_raw > 100 ? 100 : progress_raw %}
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-sm font-medium text-secondary-500">Objectif</span>
+                                <span class="font-bold text-primary-600">{{ progress_raw|number_format(0) }}%</span>
+                            </div>
+                            <div class="w-full h-3 bg-secondary-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full" style="width: {{ progress_percentage }}%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1 text-xs text-secondary-400">
+                                <span>{{ total|number_format(0, ',', ' ') }}€</span>
+                                <span>{{ goal|number_format(0, ',', ' ') }}€</span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-secondary-50 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-secondary-800">{{ creator.total_donations|default(0)|number_format(0, ',', ' ') }}€</div>
+                            <div class="text-xs text-secondary-500 font-medium uppercase tracking-wide mt-1">Collectés</div>
+                        </div>
+                        <div class="bg-secondary-50 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-secondary-800">{{ creator.donor_count|default(0) }}</div>
+                            <div class="text-xs text-secondary-500 font-medium uppercase tracking-wide mt-1">Donateurs</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links -->
                 {% if links %}
-                    <div class="creator-links">
-                        <h3>Liens utiles</h3>
-                        <ul>
+                    <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-6">
+                        <h3 class="font-heading font-bold text-lg text-secondary-900 mb-4">Mes liens</h3>
+                        <div class="space-y-3">
                             {% for link in links %}
-                                <li>
-                                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 text-secondary-700 hover:text-primary-600 transition-colors group">
+                                    <div class="w-10 h-10 rounded-full bg-secondary-100 flex items-center justify-center text-secondary-500 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
                                         <i class="fas fa-link"></i>
-                                        {{ link.title }}
-                                    </a>
-                                </li>
+                                    </div>
+                                    <span class="font-medium truncate">{{ link.title }}</span>
+                                    <i class="fas fa-external-link-alt ml-auto text-xs text-secondary-300 group-hover:text-primary-400"></i>
+                                </a>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
                 {% endif %}
-                
+
+                <!-- Packs -->
                 {% if packs %}
-                    <div class="creator-packs">
-                        <h3>Packs disponibles</h3>
-                        <div class="packs-grid">
+                    <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-6">
+                        <h3 class="font-heading font-bold text-lg text-secondary-900 mb-4">Packs Exclusifs</h3>
+                        <div class="space-y-4">
                             {% for pack in packs %}
-                                <div class="pack-card">
-                                    {% if pack.image_url %}
-                                        <img src="{{ pack.image_url }}" alt="{{ pack.name }}">
-                                    {% endif %}
-                                    <div class="pack-info">
-                                        <h4>{{ pack.name }}</h4>
-                                        <p>{{ pack.description }}</p>
-                                        <div class="pack-price">{{ pack.price|number_format(2, ',', ' ') }}€</div>
-                                        <button class="button button-outline">
-                                            <i class="fas fa-shopping-cart"></i> Acheter
-                                        </button>
+                                <div class="border border-secondary-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition-all">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-bold text-secondary-800">{{ pack.name }}</h4>
+                                        <span class="bg-primary-100 text-primary-700 text-xs font-bold px-2 py-1 rounded-lg">{{ pack.price|number_format(0) }}€</span>
                                     </div>
+                                    <p class="text-sm text-secondary-500 mb-3">{{ pack.description }}</p>
+                                    <button class="w-full py-2 rounded-lg border border-primary-600 text-primary-600 font-semibold text-sm hover:bg-primary-50 transition-colors">
+                                        Commander
+                                    </button>
                                 </div>
                             {% endfor %}
                         </div>
@@ -145,9 +203,16 @@
         </div>
     </div>
 </div>
+
+<script>
+    function setAmount(val) {
+        document.getElementById('amount').value = val;
+    }
+</script>
 {% endblock %}
 
 {% block page_scripts %}
     {{ parent() }}
-    <script src="/assets/js/creator-profile.js"></script>
+    <!-- Removed legacy JS if no longer needed, or kept if it handles other logic -->
+    <!-- <script src="/assets/js/creator-profile.js"></script> -->
 {% endblock %}

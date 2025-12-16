@@ -28,4 +28,18 @@ class CreatorRepository
     }
 
     // Ajoute d'autres méthodes métier ici (findAll, findByEmail, etc.)
+
+    public function getCreatorByUsername($username)
+    {
+        $sql = "SELECT * FROM creators WHERE username = :username OR id = :username"; // Support ID or Username
+        $stmt = $this->db->execute($sql, [':username' => $username]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getCreatorLinks($creatorId)
+    {
+        $sql = "SELECT * FROM creator_links WHERE creator_id = :creator_id AND is_active = 1 ORDER BY position ASC";
+        $stmt = $this->db->execute($sql, [':creator_id' => $creatorId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

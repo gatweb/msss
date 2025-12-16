@@ -121,14 +121,14 @@ L'audit a mis en lumière les points suivants :
 
 ### 5.3 Évolutions Techniques Futures (Propositions Utilisateur)
 
-Ces points représentent des évolutions majeures pour moderniser et scaler l'application. Ils seront abordés après la stabilisation et la sécurisation de la base existante.
+#### Phase 1 : Migration Frontend Progressive (En Cours)
+-   ✅ **Stack Technique** : Installation de Tailwind CSS + Vite.
+-   **Composants Vue.js** : Intégration progressive de Vue 3 pour les fonctionnalités interactives (Dashboard temps réel).
+-   **Design System** : Création d'un UI Kit moderne basé sur Tailwind.
 
-#### 5.3.1 Stack Frontend
-
-*   **Framework**: Migration vers **Vue.js 3 avec Composition API**.
-*   **Styling**: Adoption de **Tailwind CSS** avec un design system personnalisé.
-*   **Gestion d’état**: Implémentation de **Pinia**.
-*   **Outil de build**: Utilisation de **Vite**.
+#### Phase 2 : API REST & Websockets
+-   **API** : Exposer les données via une API REST (déjà initié avec `Api\DonationController`).
+-   **Websockets** : Pour les notifications de dons en direct (OBS).
 *   **Tests**: Intégration de **Vitest** pour les tests unitaires et **Cypress** pour les tests end-to-end.
 
 #### 5.3.2 Améliorations Backend

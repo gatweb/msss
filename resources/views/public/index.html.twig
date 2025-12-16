@@ -3,57 +3,99 @@
 {% set pageTitle = 'Découvrez nos Créatrices' %}
 
 {% block content %}
-<div class="hero-section">
-    <div class="container">
-        <h1>Bienvenue sur notre Plateforme de Dons</h1>
-        <p>Découvrez et soutenez nos créatrices talentueuses</p>
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-secondary-50 via-white to-primary-50 py-24 lg:py-32 overflow-hidden">
+    <!-- Decorative blobs -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-200 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+    <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-accent-200 rounded-full blur-3xl opacity-20"></div>
+
+    <div class="container mx-auto px-4 relative z-10 text-center">
+        <h1 class="font-heading font-extrabold text-4xl sm:text-5xl lg:text-7xl text-secondary-900 tracking-tight mb-6">
+            Soutenez vos <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">Créatrices</span> Préférées
+        </h1>
+        <p class="text-lg sm:text-xl text-secondary-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Une plateforme directe, éthique et élégante pour connecter les créatrices de contenu avec leur communauté.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="#creators" class="px-8 py-4 rounded-full bg-primary-600 text-white font-bold text-lg hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-500/30 transition-all duration-300 transform hover:-translate-y-1">
+                Découvrir les talents
+            </a>
+            <a href="/register" class="px-8 py-4 rounded-full bg-white text-secondary-700 border border-secondary-200 font-bold text-lg hover:bg-secondary-50 hover:border-secondary-300 transition-all duration-300">
+                Devenir créatrice
+            </a>
+        </div>
     </div>
 </div>
 
-{% if creators is not empty %}
-    <div class="container">
-        <div class="creators-grid">
-            {% for creator in creators %}
-                <div class="creator-card">
-                    <div class="creator-image">
-                        <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}"
-                             alt="{{ creator.name|default('Créatrice') }}">
-                    </div>
-                    <div class="creator-info">
-                        <h2>{{ creator.name }}</h2>
-                        {% if creator.tagline %}
-                            <p class="creator-tagline">{{ creator.tagline }}</p>
-                        {% endif %}
-                        <div class="creator-stats">
-                            <div class="stat">
-                                <i class="fas fa-gift"></i>
-                                <span>{{ creator.total_donations|default(0)|number_format(2, ',', ' ') }}€</span>
-                                <small>reçus</small>
-                            </div>
-                            <div class="stat">
-                                <i class="fas fa-users"></i>
-                                <span>{{ creator.donor_count|default(0) }}</span>
-                                <small>donateurs</small>
+<!-- Creators Grid Section -->
+<div id="creators" class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="font-heading font-bold text-3xl text-secondary-900 mb-4">Créatrices à l'honneur</h2>
+            <div class="h-1 w-20 bg-primary-500 mx-auto rounded-full"></div>
+        </div>
+
+        {% if creators is not empty %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for creator in creators %}
+                    <div class="group bg-white rounded-2xl border border-secondary-100 shadow-sm hover:shadow-xl hover:shadow-primary-900/5 transition-all duration-500 overflow-hidden flex flex-col h-full">
+                        <!-- Card Header / Image -->
+                        <div class="relative h-48 bg-secondary-100 overflow-hidden">
+                            {% if creator.banner_url %}
+                                <img src="{{ creator.banner_url }}" alt="Banner" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700">
+                            {% else %}
+                                <div class="w-full h-full bg-gradient-to-br from-primary-100 to-secondary-100"></div>
+                            {% endif %}
+                            
+                            <!-- Avatar Overlay -->
+                            <div class="absolute -bottom-10 left-6">
+                                <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}" 
+                                     alt="{{ creator.name }}" 
+                                     class="w-20 h-20 rounded-2xl border-4 border-white shadow-md object-cover">
                             </div>
                         </div>
-                        {% set profileSlug = creator.username|default(creator.id) %}
-                        <a href="/creator/{{ profileSlug }}" class="button button-outline">
-                            <i class="fas fa-heart"></i> Découvrir
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
 
-{% if creators is empty %}
-    <div class="container">
-        <div class="empty-state">
-            <i class="fas fa-users-slash"></i>
-            <h2>Aucune créatrice pour le moment</h2>
-            <p>Revenez bientôt pour découvrir nos talentueuses créatrices !</p>
-        </div>
+                        <!-- Card Content -->
+                        <div class="pt-12 pb-6 px-6 flex-grow flex flex-col">
+                            <div class="mb-4">
+                                <h3 class="font-heading font-bold text-xl text-secondary-900 group-hover:text-primary-600 transition-colors mb-1">
+                                    {{ creator.name }}
+                                </h3>
+                                <p class="text-sm text-secondary-500 line-clamp-2">
+                                    {{ creator.tagline|default('Créatrice de contenu') }}
+                                </p>
+                            </div>
+
+                            <div class="mt-auto pt-4 border-t border-secondary-50 grid grid-cols-2 gap-4">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-medium text-secondary-400 uppercase tracking-wider">Dons reçus</span>
+                                    <span class="font-bold text-secondary-700">{{ creator.total_donations|default(0)|number_format(2, ',', ' ') }}€</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-medium text-secondary-400 uppercase tracking-wider">Donateurs</span>
+                                    <span class="font-bold text-secondary-700">{{ creator.donor_count|default(0) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                {% set profileSlug = creator.username|default(creator.id) %}
+                                <a href="/creator/{{ profileSlug }}" class="block w-full py-3 rounded-xl bg-secondary-50 text-secondary-700 font-semibold text-center hover:bg-primary-600 hover:text-white transition-all duration-300">
+                                    Voir le profil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="max-w-md mx-auto text-center py-12">
+                <div class="w-20 h-20 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-users text-3xl text-secondary-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-secondary-900 mb-2">Aucune créatrice pour le moment</h3>
+                <p class="text-secondary-500">Revenez bientôt pour découvrir nos talentueuses créatrices !</p>
+            </div>
+        {% endif %}
     </div>
-{% endif %}
+</div>
 {% endblock %}
