@@ -90,7 +90,7 @@ class DonationsController extends BaseController {
             return;
         }
         
-        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/dashboard');
             return;
@@ -129,7 +129,7 @@ class DonationsController extends BaseController {
             return;
         }
 
-        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect($_SERVER['HTTP_REFERER'] ?? '/');
             return;
@@ -213,7 +213,7 @@ class DonationsController extends BaseController {
             'progress_percentage' => ($donationData['goal'] > 0) ? 
                                    min(100, ($donationData['total'] / $donationData['goal']) * 100) : 0,
             'valid_donation_types' => ['PayPal', 'Photo', 'Cadeau', 'Autre'],
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ]);
     }
 
@@ -228,7 +228,7 @@ class DonationsController extends BaseController {
         $this->render('donation/form.html.twig', [
             'pageTitle' => 'Faire un don à ' . $creator['name'],
             'creator' => $creator,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ]);
     }
 

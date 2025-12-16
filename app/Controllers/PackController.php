@@ -35,7 +35,7 @@ class PackController extends BaseController
         $this->render('creator/packs.html.twig', [
             'packs' => $packs,
             'pageTitle' => 'Mes Packs',
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 
@@ -44,7 +44,7 @@ class PackController extends BaseController
         $this->requireCreator();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
                 $this->flash->error('Session invalide. Veuillez réessayer.');
                 $this->redirect('/profile/packs/create');
                 return;
@@ -61,7 +61,7 @@ class PackController extends BaseController
 
             if (empty($data['name']) || $data['price'] === false || $data['price'] <= 0) {
                 $this->flash->error('Veuillez remplir les champs obligatoires (Nom, Prix > 0).');
-                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
                 return; 
             }
 
@@ -70,10 +70,10 @@ class PackController extends BaseController
                 $this->redirect('/profile/packs');
             } else {
                 $this->flash->error('Erreur lors de la création du pack.');
-                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
             }
         } else {
-            $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+            $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
         }
     }
 
@@ -90,7 +90,7 @@ class PackController extends BaseController
         }
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
                 $this->flash->error('Session invalide. Veuillez réessayer.');
                 $this->redirect('/profile/packs/edit/' . $packId);
                 return;
@@ -107,7 +107,7 @@ class PackController extends BaseController
 
              if (empty($data['name']) || $data['price'] === false || $data['price'] <= 0) {
                 $this->flash->error('Veuillez remplir les champs obligatoires (Nom, Prix > 0).');
-                $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+                $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
                 return; 
             }
             
@@ -119,7 +119,7 @@ class PackController extends BaseController
                 $this->redirect('/profile/packs');
             } else {
                 $this->flash->error('Erreur lors de la mise à jour du pack.');
-                 $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+                 $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
             }
 
         } else {
@@ -128,7 +128,7 @@ class PackController extends BaseController
             } else {
                 $pack['perks'] = [];
             }
-            $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => $pack, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
+            $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => $pack, 'csrf_token' => $this->generateCsrfToken()], 'creator_dashboard');
         }
     }
 
@@ -141,7 +141,7 @@ class PackController extends BaseController
             return;
         }
 
-        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile/packs');
             return;
@@ -171,7 +171,7 @@ class PackController extends BaseController
             return;
         }
 
-        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile/packs');
             return;

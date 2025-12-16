@@ -161,4 +161,40 @@ class BaseController {
             exit;
         }
     }
+
+    protected function requireCreator() {
+        $this->requireLogin();
+        if (!$this->auth->isCreator()) {
+            $this->flash->error("Accès réservé aux créateurs.");
+            $this->redirect('/');
+            exit;
+        }
+
+        // Initialize creator data for the controller
+        $userId = $this->auth->getCurrentUserId();
+        
+        // Ensure creatorRepository is available
+        if (!$this->creatorRepository) {
+             // Fallback or error if repository not injected? 
+             // Ideally it should be injected in constructor.
+             $this->creatorRepository = \App\Core\App::make(CreatorRepository::class);
+        }
+
+        $this->creator = $this->creatorRepository->findById($userId);
+        
+        if (!$this->creator) {
+             $this->flash->error("Profil créateur introuvable.");
+             $this->redirect('/');
+             exit;
+        }
+    }
+
+    protected function requireAdmin() {
+        $this->requireLogin();
+        if (!$this->auth->isAdmin()) {
+            $this->flash->error("Accès réservé aux administrateurs.");
+            $this->redirect('/');
+            exit;
+        }
+    }
 }

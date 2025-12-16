@@ -50,7 +50,7 @@ class MessagesController extends BaseController
         $this->render('creator/conversation.html.twig', [
             'messages' => $messages,
             'otherUser' => $otherUser,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 
@@ -59,7 +59,7 @@ class MessagesController extends BaseController
         $this->requireCreator();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
                 $this->flash->error('Session invalide. Veuillez réessayer.');
                 $this->redirect('/profile/messages/conversation/' . $otherUserId);
                 return;

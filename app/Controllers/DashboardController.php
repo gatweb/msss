@@ -264,7 +264,7 @@ class DashboardController extends BaseController {
             'donations' => $donations,
             'notes' => $notes,
             'pageTitle' => 'Fiche Donateur',
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'dashboard');
     }
 

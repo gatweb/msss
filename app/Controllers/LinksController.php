@@ -39,7 +39,7 @@ class LinksController extends BaseController {
         $this->render('creator/links.html.twig', [
             'pageTitle' => 'Gérer mes liens',
             'links' => $links,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 
@@ -51,7 +51,7 @@ class LinksController extends BaseController {
 
         $this->requireLogin();
 
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Erreur de sécurité (jeton CSRF invalide).');
             $this->redirect('/dashboard/links');
             return;
@@ -117,7 +117,7 @@ class LinksController extends BaseController {
 
         $this->requireLogin();
 
-         if (!Csrf::verifyToken($_POST['csrf_token'])) {
+         if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
              $this->flash->error('Erreur de sécurité (jeton CSRF invalide).');
              $this->redirect('/dashboard/links');
              return;

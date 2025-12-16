@@ -64,14 +64,8 @@
                     {% set typeColor = donation.type_color|default('#f59e42') %}
                     {% set createdAt = donation.created_at %}
 
-                    {% if createdAt is instanceof('DateTimeInterface') %}
-                        {% set dateLabel = createdAt|date('d/m/Y') %}
-                        {% set timeLabel = createdAt|date('H:i') %}
-                    {% else %}
-                        {% set timestamp = createdAt is string ? createdAt|date('U') : 'now'|date('U') %}
-                        {% set dateLabel = timestamp|date('d/m/Y') %}
-                        {% set timeLabel = timestamp|date('H:i') %}
-                    {% endif %}
+                    {% set dateLabel = createdAt|date('d/m/Y') %}
+                    {% set timeLabel = createdAt|date('H:i') %}
                     <tr class="dashboard-table-row" onclick="window.location.href='{{ profileUrl }}'">
                         <td>
                             <div class="donor-cell">

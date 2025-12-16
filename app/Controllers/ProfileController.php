@@ -44,7 +44,7 @@ class ProfileController extends BaseController
             'links' => $links,
             'isCurrentUser' => $isCurrentUser,
             'pageTitle' => 'Mon Profil',
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 
@@ -53,7 +53,7 @@ class ProfileController extends BaseController
     public function updateProfile() {
         $this->requireLogin();
 
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile');
             return;
@@ -87,7 +87,7 @@ class ProfileController extends BaseController
     public function updateAvatar() {
         $this->requireLogin();
 
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile');
             return;
@@ -142,7 +142,7 @@ class ProfileController extends BaseController
 
     public function updateBanner() {
         $this->requireLogin();
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile');
             return;
@@ -197,7 +197,7 @@ class ProfileController extends BaseController
 
     public function updatePassword() {
         $this->requireLogin();
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile');
             return;
@@ -255,7 +255,7 @@ class ProfileController extends BaseController
         $this->render('creator/settings.html.twig', [
             'pageTitle' => 'Paramètres',
             'creator' => (array) $creator,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 

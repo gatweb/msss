@@ -69,9 +69,15 @@ use App\Http\Middlewares\AdminMiddleware;
 use App\Http\Middlewares\CreatorMiddleware;
 
 // Register Middlewares
-$container->add(AuthMiddleware::class, AuthMiddleware::class);
-$container->add(AdminMiddleware::class, AdminMiddleware::class);
-$container->add(CreatorMiddleware::class, CreatorMiddleware::class);
+$container->add(AuthMiddleware::class, AuthMiddleware::class)
+    ->addArgument(Auth::class)
+    ->addArgument(Flash::class);
+$container->add(AdminMiddleware::class, AdminMiddleware::class)
+    ->addArgument(Auth::class)
+    ->addArgument(Flash::class);
+$container->add(CreatorMiddleware::class, CreatorMiddleware::class)
+    ->addArgument(Auth::class)
+    ->addArgument(Flash::class);
 
 // Register Controllers
 $controllers = [

@@ -182,7 +182,7 @@ class AdminController extends BaseController {
             'page' => $page,
             'totalPages' => $totalPages,
             'totalCreators' => $totalCreators,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'admin');
     }
 
@@ -217,7 +217,7 @@ class AdminController extends BaseController {
     public function toggleCreatorStatus() {
         $this->requireAdmin();
         
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile/admin/creators');
             return;
@@ -259,7 +259,7 @@ class AdminController extends BaseController {
     public function deleteCreator() {
         $this->requireAdmin();
         
-        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+        if (!$this->verifyCsrfToken($_POST['csrf_token'])) {
             $this->flash->error('Session invalide. Veuillez réessayer.');
             $this->redirect('/profile/admin/creators');
             return;
@@ -348,7 +348,7 @@ class AdminController extends BaseController {
             'settings' => $settings,
             'paymentMethods' => $paymentMethods,
             'emailNotificationTypes' => $emailNotificationTypes,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'admin');
     }
 
@@ -448,7 +448,7 @@ class AdminController extends BaseController {
             'page' => 1,
             'totalPages' => 1,
             'filters' => $filters,
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'admin');
     }
 

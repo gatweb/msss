@@ -49,7 +49,7 @@ class AiToolsController extends BaseController
         $this->view->addScript('/assets/js/ai_tools.js');
         $this->render('creator/ai_tools.html.twig', [ 
             'pageTitle' => 'Outils IA',
-            'csrf_token' => Csrf::generateToken()
+            'csrf_token' => $this->generateCsrfToken()
         ], 'creator_dashboard');
     }
 
@@ -63,7 +63,7 @@ class AiToolsController extends BaseController
 
         // 1. Vérification CSRF (ajoutée)
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
-        if (!Csrf::verifyToken($token)) {
+        if (!$this->verifyCsrfToken($token)) {
             ob_clean(); // Nettoyer le buffer
             http_response_code(403);
             echo json_encode(['error' => 'Jeton CSRF invalide ou manquant.']);
@@ -186,7 +186,7 @@ class AiToolsController extends BaseController
         // 1. Vérification CSRF
         // Chercher le token d'abord dans le header, puis dans POST
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
-        if (!Csrf::verifyToken($token)) {
+        if (!$this->verifyCsrfToken($token)) {
             ob_clean(); // Nettoyer le buffer avant d'envoyer l'erreur
             http_response_code(403);
             echo json_encode(['error' => 'Jeton CSRF invalide ou manquant.']);
