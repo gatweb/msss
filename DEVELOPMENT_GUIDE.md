@@ -111,13 +111,13 @@ L'audit a mis en lumière les points suivants :
 1.  **Migration des Vues PHP vers Twig**: ✅ Terminée. Toutes les vues `app/views/**/*.php` ont été converties en templates Twig (`resources/views/`) et le dossier `app/views` a été supprimé.
     *   ✅ Dashboard Admin : Migré vers `resources/views/admin/` (`index.html.twig`, `stats.html.twig`, etc.) avec le layout `creator_dashboard.twig`.
     *   ✅ Code mort supprimé : Routes (`/profile/edit`) et contrôleurs (`MediaController`) inutilisés ont été retirés.
-    *   🔜 Prochaine priorité : Injection de dépendances pour la session et refactorisation des accès directs à `$_SESSION`.
-
+    *   ✅ Injection de dépendances pour la session : `$_SESSION` encapsulé dans `App\Core\Session` et accès directs supprimés des classes Core et Helpers.
+    *   ✅ Refactorisation des Actions Mutatives : Toutes les actions de modification (suppression, toggle, update) utilisent désormais POST + CSRF (Packs, Liens, Messages, Admin).
 ### 5.2 Améliorations Backend (Dette Technique)
 
-1.  **Suppression de l'Autoloader Redondant**: Supprimer l'autoloader personnalisé dans `app/bootstrap.php` et s'assurer que Composer gère toutes les dépendances et l'autoloading.
-2.  **Refactorisation des Actions Mutatives**: Remplacer les requêtes GET utilisées pour des actions qui modifient les données par des requêtes POST, PUT ou DELETE appropriées (avec protection CSRF si nécessaire). ✅ Packs : suppression/toggle sont désormais en POST + CSRF ; à appliquer aux autres modules (liens, messages, etc.).
-3.  **Injection de Dépendances pour `$_SESSION`**: Remplacer les accès directs à `$_SESSION` (notamment dans `DonationRepository`) par une approche basée sur l'injection de dépendances pour un meilleur découplage et testabilité.
+1.  ✅ **Suppression de l'Autoloader Redondant**: L'autoloader personnalisé a été retiré. `composer.json` gère désormais le chargement des classes (`App\\`) et des fichiers (`app/helpers.php`).
+2.  ✅ **Refactorisation des Actions Mutatives**: Toutes les actions modifiant les données (DELETE, POST) sont sécurisées via POST + CSRF.
+3.  ✅ **Injection de Dépendances pour `$_SESSION`**: Accès directs à `$_SESSION` remplacés par le service `App\Core\Session`.
 
 ### 5.3 Évolutions Techniques Futures (Propositions Utilisateur)
 

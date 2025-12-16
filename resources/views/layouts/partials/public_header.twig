@@ -1,0 +1,56 @@
+{% set header_classes = header_classes|default('site-header') %}
+<header class="{{ header_classes }}">
+    <div class="site-header__inner">
+        <a href="{{ logo_href|default('/') }}" class="site-logo">
+            {% if logo_image is not same as(false) and logo_image is not empty %}
+                <img src="{{ logo_image }}" alt="{{ logo_label|default('Msss') }}">
+            {% endif %}
+            {% if logo_icon %}
+                <i class="{{ logo_icon }}" aria-hidden="true"></i>
+            {% endif %}
+            <span>
+                {{ logo_label|default('Msss') }}
+                {% if logo_sub_label %}
+                    <small>{{ logo_sub_label }}</small>
+                {% endif %}
+            </span>
+        </a>
+
+        <nav id="site-nav" class="site-nav">
+            <ul class="site-nav__list">
+                {% for link in nav_links %}
+                    {% set match_path = link.match|default(link.href) %}
+                    {% set exact = link.exact|default(false) %}
+                    {% set computed_active = is_active_path(match_path, exact) %}
+                    {% set active = link.is_active|default(computed_active) %}
+                    <li>
+                        <a href="{{ link.href }}"
+                           class="site-nav__link{{ active ? ' is-active' : '' }}">
+                            {% if link.icon %}
+                                <i class="{{ link.icon }}" aria-hidden="true"></i>
+                            {% endif %}
+                            {{ link.label }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+
+        {% if action_buttons %}
+            <div class="site-actions">
+                {% for button in action_buttons %}
+                    {% set variant = button.variant|default('ghost') %}
+                    {% set class_name = variant == 'primary' ? 'btn' : 'btn-ghost' %}
+                    <a class="{{ class_name }}"
+                       href="{{ button.href }}"
+                       {% if button.target %}target="{{ button.target }}"{% endif %}>
+                        {% if button.icon %}
+                            <i class="{{ button.icon }}" aria-hidden="true"></i>
+                        {% endif %}
+                        {{ button.label }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</header>

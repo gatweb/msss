@@ -4,13 +4,18 @@ namespace App\Controllers;
 
 use App\Core\BaseController;
 use App\Models\Creator;
+use App\Core\Csrf;
+use App\Core\View;
+use App\Core\Auth;
+use App\Core\Flash;
+use App\Repositories\CreatorRepository;
 
 class AuthController extends BaseController {
     private $creatorModel;
 
-    public function __construct() {
-        parent::__construct();
-        $this->creatorModel = new Creator($this->pdo);
+    public function __construct(View $view, Auth $auth, Flash $flash, CreatorRepository $creatorRepository, Creator $creatorModel) {
+        parent::__construct($view, $auth, $flash, $creatorRepository);
+        $this->creatorModel = $creatorModel;
     }
 
     public function loginForm() {
@@ -19,89 +24,56 @@ class AuthController extends BaseController {
             $this->redirect('/dashboard');
         }
 
+        $old = $_SESSION['old'] ?? [];
+        if (isset($_SESSION['old'])) {
+            unset($_SESSION['old']);
+        }
+
         $this->view->setTitle('Connexion');
         $this->view->addScript('/assets/js/auth.js');
-        $this->render('auth/login', [], 'auth');
+
+        $this->render('auth/login.html.twig', [
+            'csrf_token' => Csrf::generateToken(),
+            'old' => $old
+        ], 'auth');
     }
 
     public function login() {
-        error_log("=== Début de la tentative de connexion ===");
-        error_log("Méthode HTTP : " . $_SERVER['REQUEST_METHOD']);
-        error_log("URI : " . $_SERVER['REQUEST_URI']);
-        error_log("POST data : " . print_r($_POST, true));
-        error_log("Session actuelle : " . print_r($_SESSION, true));
+        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            $this->flash->error("Session expirée. Veuillez réessayer.");
+            $this->redirect('/login');
+            return;
+        }
 
         try {
             $email = $_POST['email'] ?? '';
             $password = $_POST['password'] ?? '';
             $remember = isset($_POST['remember']);
 
-            error_log("Email fourni : " . $email);
-            error_log("Remember me : " . ($remember ? 'oui' : 'non'));
-
-            // Validation du CSRF
-            if (!isset($_POST['csrf_token'])) {
-                error_log("Erreur : Token CSRF manquant");
-                $_SESSION['error'] = "Session expirée. Veuillez réessayer.";
-                header('Location: /login');
-                exit;
-            }
-
-            if (!verifyCsrfToken($_POST['csrf_token'])) {
-                error_log("Erreur : Token CSRF invalide");
-                error_log("Token reçu : " . $_POST['csrf_token']);
-                error_log("Token attendu : " . ($_SESSION['csrf_token'] ?? 'non défini'));
-                $_SESSION['error'] = "Session expirée. Veuillez réessayer.";
-                header('Location: /login');
-                exit;
-            }
-
-            error_log("Validation CSRF réussie");
-
             // Validation basique
             if (empty($email) || empty($password)) {
-                error_log("Champs manquants");
-                $_SESSION['error'] = "Tous les champs sont requis";
-                header('Location: /login');
-                exit;
+                $this->flash->error("Tous les champs sont requis");
+                $_SESSION['old']['email'] = $email;
+                $this->redirect('/login');
+                return;
             }
 
             // Vérification des identifiants
-            error_log("Tentative de récupération du créateur avec l'email : " . $email);
             $creator = $this->creatorModel->getCreatorByEmail($email);
-            error_log("Résultat de getCreatorByEmail : " . print_r($creator, true));
             
-            if (!$creator) {
-                error_log("Échec de l'authentification : créateur non trouvé pour l'email : " . $email);
-                $_SESSION['error'] = "Email ou mot de passe incorrect";
-                header('Location: /login');
-                exit;
-            }
-
-            error_log("Vérification du mot de passe pour l'email : " . $email);
-            error_log("Hash stocké : " . $creator['password']);
-            error_log("Mot de passe fourni : " . $password);
-            error_log("Tentative de vérification avec password_verify()");
-            
-            $isValid = password_verify($password, $creator['password']);
-            error_log("Résultat de password_verify() : " . ($isValid ? 'true' : 'false'));
-            
-            if (!$isValid) {
-                error_log("Échec de l'authentification : mot de passe incorrect pour l'email : " . $email);
-                $_SESSION['error'] = "Email ou mot de passe incorrect";
-                header('Location: /login');
-                exit;
+            if (!$creator || !password_verify($password, $creator['password'])) {
+                $this->flash->error("Email ou mot de passe incorrect");
+                $_SESSION['old']['email'] = $email;
+                $this->redirect('/login');
+                return;
             }
             
-            error_log("Mot de passe vérifié avec succès");
-
             // Vérification du statut du compte
-            error_log("Statut du compte : " . ($creator['is_active'] ? 'actif' : 'inactif'));
             if (!$creator['is_active']) {
-                error_log("Compte non actif pour l'email : " . $email);
-                $_SESSION['error'] = "Votre compte n'est pas actif. Veuillez vérifier votre email ou contacter le support.";
-                header('Location: /login');
-                exit;
+                $this->flash->error("Votre compte n'est pas actif. Veuillez vérifier votre email ou contacter le support.");
+                $_SESSION['old']['email'] = $email;
+                $this->redirect('/login');
+                return;
             }
 
             // Connexion réussie
@@ -113,8 +85,6 @@ class AuthController extends BaseController {
             $_SESSION['creator_username'] = $creator['username'] ?? null;
             $_SESSION['creator_is_admin'] = $creator['is_admin'];
             $_SESSION['initialized'] = true;
-
-            error_log("Session après connexion : " . print_r($_SESSION, true));
 
             // Gestion du "Se souvenir de moi"
             if ($remember) {
@@ -136,72 +106,83 @@ class AuthController extends BaseController {
             }
 
             if (!empty($creator['is_admin'])) {
-                header('Location: /profile/admin');
-                exit;
+                $this->redirect('/profile/admin');
             } else {
-                header('Location: /dashboard');
-                exit;
+                $this->redirect('/dashboard');
             }
         } catch (\Exception $e) {
             error_log("Erreur lors de la connexion : " . $e->getMessage());
-            error_log("Stack trace : " . $e->getTraceAsString());
-            $_SESSION['error'] = "Une erreur est survenue. Veuillez réessayer.";
-            header('Location: /login');
-            exit;
+            $this->flash->error("Une erreur est survenue. Veuillez réessayer.");
+            $_SESSION['old']['email'] = $email;
+            $this->redirect('/login');
         }
     }
 
     public function registerForm() {
         if (isset($_SESSION['creator_id'])) {
             if (!empty($_SESSION['creator_is_admin'])) {
-                header('Location: /profile/admin');
-                exit;
+                $this->redirect('/profile/admin');
             } else {
-                header('Location: /dashboard');
-                exit;
+                $this->redirect('/dashboard');
             }
         }
         
         $this->view->setTitle('Inscription');
-        $this->render('auth/register', [], 'auth');
+        $this->view->addScript('/assets/js/auth.js');
+        $old = $_SESSION['old'] ?? [];
+        if (isset($_SESSION['old'])) {
+            unset($_SESSION['old']);
+        }
+        $this->render('auth/register.html.twig', [
+            'csrf_token' => Csrf::generateToken(),
+            'old' => $old
+        ], 'auth');
     }
 
     public function register() {
+        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            $this->flash->error("Session expirée. Veuillez réessayer.");
+            $this->redirect('/register');
+            return;
+        }
+
         $name = $_POST['name'] ?? '';
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
         $passwordConfirm = $_POST['password_confirm'] ?? '';
 
+        $_SESSION['old'] = ['name' => $name, 'email' => $email];
+
         // Validation basique
         if (empty($name) || empty($email) || empty($password) || empty($passwordConfirm)) {
-            $_SESSION['error'] = "Tous les champs sont requis";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Tous les champs sont requis");
+            $this->redirect('/register');
+            return;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = "Email invalide";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Email invalide");
+            $this->redirect('/register');
+            return;
         }
 
         if (strlen($password) < 8) {
-            $_SESSION['error'] = "Le mot de passe doit faire au moins 8 caractères";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Le mot de passe doit faire au moins 8 caractères");
+            $this->redirect('/register');
+            return;
         }
 
         if ($password !== $passwordConfirm) {
-            $_SESSION['error'] = "Les mots de passe ne correspondent pas";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Les mots de passe ne correspondent pas");
+            $this->redirect('/register');
+            return;
         }
 
         // Vérifier si l'email existe déjà
         if ($this->creatorModel->getCreatorByEmail($email)) {
-            $_SESSION['error'] = "Cet email est déjà utilisé";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Cet email est déjà utilisé");
+            $this->redirect('/register');
+            return;
         }
 
         // Création du compte
@@ -220,13 +201,12 @@ class AuthController extends BaseController {
             // Envoyer l'email de vérification
             $this->sendVerificationEmail($email, $verificationToken);
             
-            $_SESSION['success'] = "Votre compte a été créé. Veuillez vérifier votre email pour l'activer.";
-            header('Location: /login');
-            exit;
+            unset($_SESSION['old']);
+            $this->flash->success("Votre compte a été créé. Veuillez vérifier votre email pour l'activer.");
+            $this->redirect('/login');
         } else {
-            $_SESSION['error'] = "Une erreur est survenue lors de la création du compte";
-            header('Location: /register');
-            exit;
+            $this->flash->error("Une erreur est survenue lors de la création du compte");
+            $this->redirect('/register');
         }
     }
 
@@ -257,22 +237,40 @@ class AuthController extends BaseController {
         exit;
     }
 
+    public function forgotPasswordForm() {
+        $old = $_SESSION['old'] ?? [];
+        if (isset($_SESSION['old'])) {
+            unset($_SESSION['old']);
+        }
+        $this->render('auth/forgot-password.html.twig', [
+            'csrf_token' => Csrf::generateToken(),
+            'old' => $old
+        ], 'auth');
+    }
+
     public function forgotPassword() {
+        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            $this->flash->error("Session expirée. Veuillez réessayer.");
+            $this->redirect('/forgot-password');
+            return;
+        }
+
         $email = $_POST['email'] ?? '';
+        $_SESSION['old']['email'] = $email;
 
         if (empty($email)) {
-            $_SESSION['error'] = "L'email est requis";
-            header('Location: /forgot-password');
-            exit;
+            $this->flash->error("L'email est requis");
+            $this->redirect('/forgot-password');
+            return;
         }
 
         $creator = $this->creatorModel->getCreatorByEmail($email);
 
         if (!$creator) {
             // Ne pas indiquer si l'email existe ou non
-            $_SESSION['success'] = "Si votre email est enregistré, vous recevrez un lien de réinitialisation.";
-            header('Location: /login');
-            exit;
+            $this->flash->success("Si votre email est enregistré, vous recevrez un lien de réinitialisation.");
+            $this->redirect('/login');
+            return;
         }
 
         $resetToken = bin2hex(random_bytes(32));
@@ -282,44 +280,64 @@ class AuthController extends BaseController {
             // Envoyer l'email de réinitialisation
             $this->sendResetEmail($email, $resetToken);
             
-            $_SESSION['success'] = "Un email de réinitialisation vous a été envoyé.";
+            unset($_SESSION['old']);
+            $this->flash->success("Un email de réinitialisation vous a été envoyé.");
         } else {
-            $_SESSION['error'] = "Une erreur est survenue. Veuillez réessayer.";
+            $this->flash->error("Une erreur est survenue. Veuillez réessayer.");
         }
 
-        header('Location: /login');
-        exit;
+        $this->redirect('/login');
+    }
+
+    public function resetPasswordForm() {
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            $this->flash->error("Token invalide ou manquant.");
+            $this->redirect('/login');
+            return;
+        }
+
+        $this->render('auth/reset-password.html.twig', [
+            'token' => $token,
+            'csrf_token' => Csrf::generateToken()
+        ], 'auth');
     }
 
     public function resetPassword() {
+        if (!Csrf::verifyToken($_POST['csrf_token'])) {
+            $this->flash->error("Session expirée. Veuillez réessayer.");
+            $this->redirect('/login');
+            return;
+        }
+
         $token = $_POST['token'] ?? '';
         $password = $_POST['password'] ?? '';
         $passwordConfirm = $_POST['password_confirm'] ?? '';
 
         if (empty($token)) {
-            $_SESSION['error'] = "Token invalide";
-            header('Location: /login');
-            exit;
+            $this->flash->error("Token invalide");
+            $this->redirect('/login');
+            return;
         }
 
         $creator = $this->creatorModel->getCreatorByResetToken($token);
 
         if (!$creator) {
-            $_SESSION['error'] = "Token invalide ou expiré";
-            header('Location: /login');
-            exit;
+            $this->flash->error("Token invalide ou expiré");
+            $this->redirect('/login');
+            return;
         }
 
         if (empty($password) || strlen($password) < 8) {
-            $_SESSION['error'] = "Le mot de passe doit faire au moins 8 caractères";
-            header("Location: /reset-password?token=$token");
-            exit;
+            $this->flash->error("Le mot de passe doit faire au moins 8 caractères");
+            $this->redirect("/reset-password?token=$token");
+            return;
         }
 
         if ($password !== $passwordConfirm) {
-            $_SESSION['error'] = "Les mots de passe ne correspondent pas";
-            header("Location: /reset-password?token=$token");
-            exit;
+            $this->flash->error("Les mots de passe ne correspondent pas");
+            $this->redirect("/reset-password?token=$token");
+            return;
         }
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -328,13 +346,12 @@ class AuthController extends BaseController {
             // Invalider le token de réinitialisation
             $this->creatorModel->clearResetToken($creator['id']);
             
-            $_SESSION['success'] = "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter.";
+            $this->flash->success("Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter.");
         } else {
-            $_SESSION['error'] = "Une erreur est survenue lors de la mise à jour du mot de passe";
+            $this->flash->error("Une erreur est survenue lors de la mise à jour du mot de passe");
         }
 
-        header('Location: /login');
-        exit;
+        $this->redirect('/login');
     }
 
     public function logout() {

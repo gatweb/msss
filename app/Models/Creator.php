@@ -397,4 +397,56 @@ class Creator extends BaseModel {
             return false;
         }
     }
+
+    public function setResetToken($id, $token, $expires) {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE creators SET reset_token = :token, reset_token_expires = :expires WHERE id = :id");
+            return $stmt->execute(['token' => $token, 'expires' => $expires, 'id' => $id]);
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de la définition du token de réinitialisation : " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getCreatorByResetToken($token) {
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM creators WHERE reset_token = :token AND reset_token_expires > datetime('now')");
+            $stmt->execute(['token' => $token]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de la récupération du créateur par token de réinitialisation : " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function clearResetToken($id) {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE creators SET reset_token = NULL, reset_token_expires = NULL WHERE id = :id");
+            return $stmt->execute(['id' => $id]);
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de la suppression du token de réinitialisation : " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getCreatorByVerificationToken($token) {
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM creators WHERE verification_token = :token");
+            $stmt->execute(['token' => $token]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de la récupération du créateur par token de vérification : " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function activateCreator($id) {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE creators SET is_active = 1, verification_token = NULL WHERE id = :id");
+            return $stmt->execute(['id' => $id]);
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de l'activation du créateur : " . $e->getMessage());
+            return false;
+        }
+    }
 }

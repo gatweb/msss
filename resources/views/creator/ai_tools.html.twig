@@ -1,0 +1,83 @@
+
+<div class="row">
+    <!-- Card 1: Suggestion de Réponse -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightbulb-fill me-2"></i>Suggérer une Réponse
+            </div>
+            <div class="card-body">
+                <form id="suggestReplyForm">
+                    <input type="hidden" name="csrf_token_suggest" value="{{ csrf_token }}">
+                    <div class="mb-3">
+                        <label for="donorMessage" class="form-label">Message Reçu du Donateur</label>
+                        <textarea class="form-control" id="donorMessage" name="donorMessage" rows="5" required placeholder="Collez ici le message reçu..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="toneSelectorSuggest" class="form-label">Ton souhaité pour la Réponse</label>
+                        <select class="form-select" id="toneSelectorSuggest" name="tone">
+                            <option value="normal" selected>Normal / Poli</option>
+                            <option value="informel">Informel</option>
+                            <option value="drole">Drôle</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="strict">Strict</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success" id="suggestBtn">
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="display: none;"></span>
+                        Suggérer
+                    </button>
+                </form>
+                <!-- Zone de résultat Suggestion -->
+                <div id="suggestResultArea" class="mt-3" style="display: none;">
+                    <h6>Suggestion :</h6>
+                    <div id="suggestErrorDiv" class="alert alert-danger" style="display: none;"></div>
+                    <textarea class="form-control" id="suggestedReplyText" rows="6" readonly></textarea>
+                    <button class="btn btn-sm btn-secondary mt-2 copyBtn" data-clipboard-target="#suggestedReplyText">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Card 2: Améliorer un Texte -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pencil-fill me-2"></i>Améliorer un Texte
+            </div>
+            <div class="card-body">
+                <form id="enhanceTextForm">
+                     <input type="hidden" name="csrf_token_enhance" value="{{ csrf_token }}">
+                    <div class="mb-3">
+                        <label for="originalTextEnhance" class="form-label">Votre Texte Original</label>
+                        <textarea class="form-control" id="originalTextEnhance" name="originalText" rows="5" required placeholder="Écrivez ou collez votre texte ici..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="toneSelectorEnhance" class="form-label">Ton souhaité pour l'Amélioration</label>
+                        <select class="form-select" id="toneSelectorEnhance" name="tone">
+                             <option value="normal" selected>Normal / Poli</option>
+                            <option value="informel">Informel</option>
+                            <option value="drole">Drôle</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="strict">Strict</option>
+                        </select>
+                    </div>
+                     <button type="submit" class="btn btn-primary" id="enhanceBtn">
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="display: none;"></span>
+                        Améliorer
+                    </button>
+                </form>
+                 <!-- Zone de résultat Amélioration -->
+                <div id="enhanceResultArea" class="mt-3" style="display: none;">
+                    <h6>Texte Amélioré :</h6>
+                    <div id="enhanceErrorDiv" class="alert alert-danger" style="display: none;"></div>
+                    <textarea class="form-control" id="enhancedText" rows="6" readonly></textarea>
+                    <button class="btn btn-sm btn-secondary mt-2 copyBtn" data-clipboard-target="#enhancedText">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

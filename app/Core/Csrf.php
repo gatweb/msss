@@ -4,23 +4,25 @@ namespace App\Core;
 
 class Csrf
 {
+    private $session;
+
+    public function __construct(Session $session)
+    {
+        $this->session = $session;
+    }
+
     /**
      * Génère un token CSRF unique, le stocke en session et le retourne.
      *
      * @return string Le token CSRF généré.
      */
-    public static function generateToken(): string
+    public function generateToken(): string
     {
-        // S'assure que la session est démarrée
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
         // Génère un token sécurisé
         $token = bin2hex(random_bytes(32));
 
         // Stocke le token en session
-        $_SESSION['csrf_token'] = $token;
+        $this->session->set('csrf_token', $token);
 
         return $token;
     }
@@ -31,17 +33,13 @@ class Csrf
      * @param string|null $token Le token à vérifier (provenant du formulaire/requête).
      * @return bool True si le token est valide, false sinon.
      */
-    public static function verifyToken(?string $token): bool
+    public function verifyToken(?string $token): bool
     {
-        // S'assure que la session est démarrée
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
         // Vérifie si un token est présent en session et si le token fourni correspond
-        if (isset($_SESSION['csrf_token']) && $token !== null && hash_equals($_SESSION['csrf_token'], $token)) {
-            // Optionnel : Supprimer le token après usage pour éviter les attaques de rejeu (single-use tokens)
-            // unset($_SESSION['csrf_token']);
+        $storedToken = $this->session->get('csrf_token');
+        if ($storedToken && $token !== null && hash_equals($storedToken, $token)) {
+            // Optionnel : Supprimer le token après usage
+            // $this->session->remove('csrf_token');
             return true;
         }
 

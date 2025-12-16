@@ -3,81 +3,55 @@
 namespace App\Controllers;
 
 use App\Core\BaseController;
-use App\Models\Pack;
-use App\Models\Creator;
-
-use App\Repositories\PackRepository;
-use App\Repositories\CreatorRepository;
 use App\Core\View;
+use App\Core\Auth;
+use App\Core\Flash;
+use App\Repositories\CreatorRepository;
+use App\Repositories\PackRepository;
+use App\Core\Csrf;
 
 class PackController extends BaseController
 {
-    protected $view;
     protected $packRepo;
-    protected $creatorRepo;
-    protected $auth;
-    protected $flash;
 
-    public function __construct(PackRepository $packRepo, CreatorRepository $creatorRepo, $auth, $flash, View $view)
-    {
+    public function __construct(
+        View $view,
+        Auth $auth,
+        Flash $flash,
+        CreatorRepository $creatorRepository,
+        PackRepository $packRepo
+    ) {
+        parent::__construct($view, $auth, $flash, $creatorRepository);
         $this->packRepo = $packRepo;
-        $this->creatorRepo = $creatorRepo;
-        $this->auth = $auth;
-        $this->flash = $flash;
-        $this->view = $view;
     }
 
-    /**
-     * Affiche la liste des packs pour la créatrice connectée.
-     */
     public function index()
     {
-        if (!$this->auth->isLoggedIn()) {
-            // Rediriger vers la connexion si non connecté
-            header('Location: /login');
-            exit;
-        }
+        $this->requireCreator();
 
-        $creatorId = $_SESSION['creator_id']; // Utiliser la bonne clé !
-        if (!$creatorId) {
-             // Gérer le cas où l'ID n'est pas dans la session
-            $this->flash->error('Impossible de récupérer votre identifiant. Veuillez vous reconnecter.');
-            header('Location: /login');
-            exit;
-        }
-        
+        $creatorId = $this->creator['id'];
         $packs = $this->packRepo->getPacksByCreator($creatorId);
 
-        $creator = $this->creatorRepo->findById($creatorId);
-        // Charger la vue pour afficher les packs
-        $this->view->render('creator/packs', [
+        $this->render('creator/packs.html.twig', [
             'packs' => $packs,
             'pageTitle' => 'Mes Packs',
-            'creator' => $creator
+            'csrf_token' => Csrf::generateToken()
         ], 'creator_dashboard');
     }
 
-    /**
-     * Affiche le formulaire de création de pack ou traite la soumission.
-     */
     public function create()
     {
-        if (!$this->auth->isLoggedIn()) {
-            header('Location: /login');
-            exit;
-        }
-
-        $creatorId = $_SESSION['creator_id']; // Utiliser la bonne clé !
-        if (!$creatorId) {
-            $this->flash->error('Impossible de récupérer votre identifiant. Veuillez vous reconnecter.');
-            header('Location: /login');
-            exit;
-        }
+        $this->requireCreator();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // --- Traitement du formulaire POST --- 
+            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+                $this->flash->error('Session invalide. Veuillez réessayer.');
+                $this->redirect('/profile/packs/create');
+                return;
+            }
+
             $data = [
-                'creator_id' => $_SESSION['creator_id'],
+                'creator_id' => $this->creator['id'],
                 'name' => trim($_POST['name'] ?? ''),
                 'description' => trim($_POST['description'] ?? ''),
                 'price' => filter_var($_POST['price'] ?? 0, FILTER_VALIDATE_FLOAT),
@@ -85,54 +59,43 @@ class PackController extends BaseController
                 'is_active' => isset($_POST['is_active']) ? 1 : 0
             ];
 
-            // Validation basique (à améliorer)
             if (empty($data['name']) || $data['price'] === false || $data['price'] <= 0) {
                 $this->flash->error('Veuillez remplir les champs obligatoires (Nom, Prix > 0).');
-                // Re-afficher le formulaire avec les erreurs et les données précédentes si nécessaire
-                $this->view->render('creator/packs_create', ['pageTitle' => 'Créer un Pack', 'formData' => $data], 'dashboard');
+                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
                 return; 
             }
 
             if ($this->packRepo->createPack($data)) {
                 $this->flash->success('Pack créé avec succès !');
-                header('Location: /profile/packs'); // Rediriger vers la liste des packs
-                exit;
+                $this->redirect('/profile/packs');
             } else {
                 $this->flash->error('Erreur lors de la création du pack.');
-                // Re-afficher le formulaire avec les erreurs
-                $this->view->render('creator/packs_create', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'creator' => $this->creatorRepo->findById($creatorId)], 'dashboard');
-                return;
+                $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'formData' => $data, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
             }
-
         } else {
-            // --- Affichage du formulaire GET --- 
-            $creator = $this->creatorRepo->findById($creatorId);
-            $this->view->render('creator/packs_create', ['pageTitle' => 'Créer un Pack', 'creator' => $creator], 'dashboard');
+            $this->render('creator/packs_create.html.twig', ['pageTitle' => 'Créer un Pack', 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
         }
     }
 
-    /**
-     * Affiche le formulaire d'édition de pack ou traite la soumission.
-     */
     public function edit($packId)
     {
-         if (!$this->auth->isLoggedIn()) {
-            header('Location: /login');
-            exit;
-        }
+        $this->requireCreator();
 
-        $creatorId = $_SESSION['creator_id']; // Utiliser la bonne clé !
         $pack = $this->packRepo->findById($packId);
 
-        // Vérifier si le pack existe et appartient à la créatrice
-        if (!$pack || $pack['creator_id'] != $creatorId) {
+        if (!$pack || $pack['creator_id'] != $this->creator['id']) {
             $this->flash->error('Pack non trouvé ou accès non autorisé.');
-            header('Location: /profile/packs');
-            exit;
+            $this->redirect('/profile/packs');
+            return;
         }
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // --- Traitement du formulaire POST --- 
+            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+                $this->flash->error('Session invalide. Veuillez réessayer.');
+                $this->redirect('/profile/packs/edit/' . $packId);
+                return;
+            }
+
              $data = [
                 'id' => $packId,
                 'name' => trim($_POST['name'] ?? ''),
@@ -142,101 +105,95 @@ class PackController extends BaseController
                 'is_active' => isset($_POST['is_active']) ? 1 : 0
             ];
 
-            // Validation
              if (empty($data['name']) || $data['price'] === false || $data['price'] <= 0) {
                 $this->flash->error('Veuillez remplir les champs obligatoires (Nom, Prix > 0).');
-                $this->view->render('packs/edit', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data)]); // Renvoyer les données modifiées
+                $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
                 return; 
             }
             
-            // Préparer les données pour l'update (ne pas inclure 'id')
             $updateData = $data;
             unset($updateData['id']);
 
             if ($this->packRepo->updatePack($packId, $updateData)) {
                 $this->flash->success('Pack mis à jour avec succès !');
-                header('Location: /profile/packs');
-                exit;
+                $this->redirect('/profile/packs');
             } else {
                 $this->flash->error('Erreur lors de la mise à jour du pack.');
-                 $this->view->render('creator/packs_edit', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data)], 'dashboard');
-                 return;
+                 $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => array_merge($pack, $data), 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
             }
 
         } else {
-            // --- Affichage du formulaire GET --- 
-             $creator = $this->creatorRepo->findById($creatorId);
-            // Convertir perks en tableau pour affichage dans la vue
             if (!empty($pack['perks']) && is_string($pack['perks'])) {
                 $pack['perks'] = preg_split('/\r?\n/', $pack['perks']);
             } else {
                 $pack['perks'] = [];
             }
-            $this->view->render('creator/packs_edit', ['pageTitle' => 'Modifier le Pack', 'pack' => $pack, 'creator' => $creator], 'dashboard');
+            $this->render('creator/packs_edit.html.twig', ['pageTitle' => 'Modifier le Pack', 'pack' => $pack, 'csrf_token' => Csrf::generateToken()], 'creator_dashboard');
         }
     }
 
-    /**
-     * Supprime un pack de façon simple et directe.
-     */
     public function delete($packId)
     {
-        if (!$this->auth->isLoggedIn()) {
-            header('Location: /login');
-            exit;
+        $this->requireCreator();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/profile/packs');
+            return;
         }
-        $creatorId = $_SESSION['creator_id'];
-        if (!$creatorId) {
-            $this->flash->error('Action non autorisée.');
-            header('Location: /profile/packs');
-            exit;
+
+        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+            $this->flash->error('Session invalide. Veuillez réessayer.');
+            $this->redirect('/profile/packs');
+            return;
         }
+
         $pack = $this->packRepo->findById($packId);
-        if (!$pack || $pack['creator_id'] != $creatorId) {
+        if (!$pack || $pack['creator_id'] != $this->creator['id']) {
             $this->flash->error('Pack non trouvé ou accès non autorisé.');
-            header('Location: /profile/packs');
-            exit;
+            $this->redirect('/profile/packs');
+            return;
         }
-        $deleted = $this->packRepo->deletePack($packId, $creatorId);
-        if ($deleted) {
+
+        if ($this->packRepo->deletePack($packId, $this->creator['id'])) {
             $this->flash->success('Pack supprimé.');
         } else {
             $this->flash->error('Erreur lors de la suppression. Aucun pack supprimé.');
         }
-        header('Location: /profile/packs');
-        exit;
+        $this->redirect('/profile/packs');
     }
 
-    /**
-     * Active ou désactive un pack
-     */
     public function toggle($packId)
     {
-        if (!$this->auth->isLoggedIn()) {
-            header('Location: /login');
-            exit;
+        $this->requireCreator();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/profile/packs');
+            return;
         }
-        $creatorId = $_SESSION['creator_id'];
+
+        if (!Csrf::verifyToken($_POST['csrf_token'] ?? '')) {
+            $this->flash->error('Session invalide. Veuillez réessayer.');
+            $this->redirect('/profile/packs');
+            return;
+        }
+
         $pack = $this->packRepo->findById($packId);
-        if (!$pack || $pack['creator_id'] != $creatorId) {
+        if (!$pack || $pack['creator_id'] != $this->creator['id']) {
             $this->flash->error('Pack non trouvé ou accès non autorisé.');
-            header('Location: /profile/packs');
-            exit;
+            $this->redirect('/profile/packs');
+            return;
         }
+
         $newStatus = $pack['is_active'] ? 0 : 1;
         $updated = $this->packRepo->updatePack($packId, [
-            'name' => $pack['name'],
-            'description' => $pack['description'],
-            'price' => $pack['price'],
-            'perks' => $pack['perks'],
             'is_active' => $newStatus
         ]);
+
         if ($updated) {
             $this->flash->success($newStatus ? 'Pack activé.' : 'Pack mis en pause.');
         } else {
             $this->flash->error('Erreur lors du changement de statut.');
         }
-        header('Location: /profile/packs');
-        exit;
+        $this->redirect('/profile/packs');
     }
 }

@@ -1,0 +1,59 @@
+{% extends 'layouts/public.twig' %}
+
+{% set pageTitle = 'Découvrez nos Créatrices' %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1>Bienvenue sur notre Plateforme de Dons</h1>
+        <p>Découvrez et soutenez nos créatrices talentueuses</p>
+    </div>
+</div>
+
+{% if creators is not empty %}
+    <div class="container">
+        <div class="creators-grid">
+            {% for creator in creators %}
+                <div class="creator-card">
+                    <div class="creator-image">
+                        <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}"
+                             alt="{{ creator.name|default('Créatrice') }}">
+                    </div>
+                    <div class="creator-info">
+                        <h2>{{ creator.name }}</h2>
+                        {% if creator.tagline %}
+                            <p class="creator-tagline">{{ creator.tagline }}</p>
+                        {% endif %}
+                        <div class="creator-stats">
+                            <div class="stat">
+                                <i class="fas fa-gift"></i>
+                                <span>{{ creator.total_donations|default(0)|number_format(2, ',', ' ') }}€</span>
+                                <small>reçus</small>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-users"></i>
+                                <span>{{ creator.donor_count|default(0) }}</span>
+                                <small>donateurs</small>
+                            </div>
+                        </div>
+                        {% set profileSlug = creator.username|default(creator.id) %}
+                        <a href="/creator/{{ profileSlug }}" class="button button-outline">
+                            <i class="fas fa-heart"></i> Découvrir
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+{% if creators is empty %}
+    <div class="container">
+        <div class="empty-state">
+            <i class="fas fa-users-slash"></i>
+            <h2>Aucune créatrice pour le moment</h2>
+            <p>Revenez bientôt pour découvrir nos talentueuses créatrices !</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

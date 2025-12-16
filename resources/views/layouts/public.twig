@@ -1,0 +1,109 @@
+{% extends 'layouts/base.twig' %}
+
+{% set user_logged_in = user_logged_in|default((session.creator_id ?? null) or (session.user_id ?? null)) %}
+{% set display_name = display_name|default(session.creator_name ?? session.username ?? null) %}
+{% set default_action_buttons = user_logged_in
+    ? [
+        {
+            'label': display_name|default('Tableau de bord'),
+            'href': '/dashboard',
+            'icon': 'fas fa-chart-line',
+            'variant': 'ghost'
+        },
+        {
+            'label': 'Déconnexion',
+            'href': '/logout',
+            'icon': 'fas fa-sign-out-alt',
+            'variant': 'primary'
+        }
+    ]
+    : [
+        {
+            'label': 'Connexion',
+            'href': '/login',
+            'variant': 'ghost'
+        },
+        {
+            'label': 'Devenir créatrice',
+            'href': '/register',
+            'variant': 'primary'
+        }
+    ]
+%}
+
+{% set default_nav_links = [
+    {'label': 'Accueil', 'href': '/', 'match': '/', 'exact': true},
+    {'label': 'Découvrir', 'href': '/#creators', 'match': '/creator'}
+] %}
+
+{% block head_assets %}
+    {{ parent() }}
+    <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/public.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-oZL4YZ6oJQWxqUoh8fDGe0XEt3G5UpiRaY1oCbcnZ6+QcmGeXgnz9K/Y/xFdVtOfvtTDHkJ/xZBwbNG0Ax7y4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block body_class %}site-shell{% endblock %}
+
+{% block body %}
+    {% include 'layouts/partials/public_header.twig' with {
+        header_classes: header_classes|default('site-header'),
+        logo_href: logo_href|default('/'),
+        logo_label: logo_label|default(appName()|default('Msss')),
+        logo_sub_label: logo_sub_label|default(null),
+        logo_icon: logo_icon|default(null),
+        logo_image: logo_image is defined ? logo_image : '/assets/img/logo.png',
+        nav_links: nav_links|default(default_nav_links),
+        action_buttons: action_buttons|default(default_action_buttons)
+    } %}
+
+    <main class="site-main">
+        <div class="site-main__inner">
+            {% set messages = flash_messages() %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for message in messages %}
+                        <div class="flash-message flash-message--{{ message.type|default('info')|lower }}">
+                            <span>{{ message.message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if error_message is defined and error_message %}
+                <div class="flash-stack">
+                    <div class="flash-message flash-message--error">{{ error_message }}</div>
+                </div>
+            {% endif %}
+
+            {% if success_message is defined and success_message %}
+                <div class="flash-stack">
+                    <div class="flash-message flash-message--success">{{ success_message }}</div>
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% include 'layouts/partials/public_footer.twig' %}
+{% endblock %}
+
+{% block scripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.site-nav__list').forEach((list) => {
+                list.addEventListener('wheel', (event) => {
+                    if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    list.scrollLeft += event.deltaY;
+                });
+            });
+        });
+    </script>
+    {% block page_scripts %}{% endblock %}
+{% endblock %}

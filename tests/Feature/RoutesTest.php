@@ -10,6 +10,7 @@ use App\Controllers\AiToolsController;
 use App\Controllers\DashboardController;
 use App\Controllers\DonationsController;
 use App\Core\Router;
+use League\Container\Container;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -17,7 +18,8 @@ class RoutesTest extends TestCase
 {
     private function loadRoutes(): Router
     {
-        $router = new Router();
+        $container = new Container();
+        $router = new Router($container);
         require APP_PATH . '/routes.php';
 
         return $router;
@@ -41,16 +43,16 @@ class RoutesTest extends TestCase
         $postRoutes = $this->getRoutesForMethod($router, 'POST');
 
         self::assertArrayHasKey('/', $getRoutes);
-        self::assertSame([PublicController::class, 'index'], $getRoutes['/']);
+        self::assertSame([PublicController::class, 'index'], $getRoutes['/']['callback']);
 
         self::assertArrayHasKey('/login', $getRoutes);
-        self::assertSame([AuthController::class, 'loginForm'], $getRoutes['/login']);
+        self::assertSame([AuthController::class, 'loginForm'], $getRoutes['/login']['callback']);
 
         self::assertArrayHasKey('/login', $postRoutes);
-        self::assertSame([AuthController::class, 'login'], $postRoutes['/login']);
+        self::assertSame([AuthController::class, 'login'], $postRoutes['/login']['callback']);
 
         self::assertArrayHasKey('/register', $getRoutes);
-        self::assertSame([AuthController::class, 'registerForm'], $getRoutes['/register']);
+        self::assertSame([AuthController::class, 'registerForm'], $getRoutes['/register']['callback']);
     }
 
     public function testApiRoutesAreRegisteredWithCorrectControllers(): void
@@ -60,13 +62,13 @@ class RoutesTest extends TestCase
         $getRoutes = $this->getRoutesForMethod($router, 'GET');
 
         self::assertArrayHasKey('/api/ai/enhance-text', $postRoutes);
-        self::assertSame([AiToolsController::class, 'enhanceText'], $postRoutes['/api/ai/enhance-text']);
+        self::assertSame([AiToolsController::class, 'enhanceText'], $postRoutes['/api/ai/enhance-text']['callback']);
 
         self::assertArrayHasKey('/api/ai/suggest-reply', $postRoutes);
-        self::assertSame([AiToolsController::class, 'suggestReply'], $postRoutes['/api/ai/suggest-reply']);
+        self::assertSame([AiToolsController::class, 'suggestReply'], $postRoutes['/api/ai/suggest-reply']['callback']);
 
         self::assertArrayHasKey('/api/dashboard/donations-evolution', $getRoutes);
-        self::assertSame([DonationsController::class, 'getDonationsEvolution'], $getRoutes['/api/dashboard/donations-evolution']);
+        self::assertSame([DonationsController::class, 'getDonationsEvolution'], $getRoutes['/api/dashboard/donations-evolution']['callback']);
     }
 
     public function testDashboardRouteUsesDashboardController(): void
@@ -75,6 +77,6 @@ class RoutesTest extends TestCase
         $getRoutes = $this->getRoutesForMethod($router, 'GET');
 
         self::assertArrayHasKey('/dashboard', $getRoutes);
-        self::assertSame([DashboardController::class, 'index'], $getRoutes['/dashboard']);
+        self::assertSame([DashboardController::class, 'index'], $getRoutes['/dashboard']['callback']);
     }
 }

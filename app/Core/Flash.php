@@ -3,6 +3,12 @@
 namespace App\Core;
 
 class Flash {
+    private $session;
+
+    public function __construct(Session $session) {
+        $this->session = $session;
+    }
+
     /**
      * Ajoute un message flash de succès
      *
@@ -10,10 +16,10 @@ class Flash {
      * @return void
      */
     public function success($message) {
-        $_SESSION['flash'] = [
+        $this->session->set('flash', [
             'type' => 'success',
             'message' => $message
-        ];
+        ]);
     }
 
     /**
@@ -23,10 +29,10 @@ class Flash {
      * @return void
      */
     public function error($message) {
-        $_SESSION['flash'] = [
+        $this->session->set('flash', [
             'type' => 'error',
             'message' => $message
-        ];
+        ]);
     }
 
     /**
@@ -35,8 +41,8 @@ class Flash {
      * @return array|null Le message flash ou null s'il n'y en a pas
      */
     public function get() {
-        $flash = $_SESSION['flash'] ?? null;
-        unset($_SESSION['flash']);
+        $flash = $this->session->get('flash');
+        $this->session->remove('flash');
         return $flash;
     }
 }

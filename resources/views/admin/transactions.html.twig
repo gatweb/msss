@@ -1,0 +1,166 @@
+
+<div class="transactions-manager">
+    <div class="page-header">
+        <h1>Transactions & Dons</h1>
+        <div class="header-actions">
+            <form method="GET" class="filters-form">
+                <input type="text" name="search" placeholder="Recherche créatrice ou donateur..." value="{{ filters.search|default('') }}">
+                <input type="date" name="start_date" value="{{ filters.start_date|default('') }}">
+                <input type="date" name="end_date" value="{{ filters.end_date|default('') }}">
+                <select name="creator_id">
+                    <option value="">Toutes les créatrices</option>
+                    {% for creator in creators %}
+                        <option value="{{ creator.id }}" {{ filters.creator_id == creator.id ? 'selected' : '' }}>{{ creator.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filtrer</button>
+                <button type="button" class="btn btn-outline" onclick="exportTransactionsCSV()"><i class="fas fa-download"></i> Exporter CSV</button>
+            </form>
+        </div>
+    </div>
+
+    {% set messages = flash_messages() %}
+    {% for message in messages %}
+        <div class="alert {{ flash_class(message.type) }}">
+            {{ message.message }}
+        </div>
+    {% endfor %}
+
+    <div class="transactions-table-container">
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Créatrice</th>
+                    <th>Donateur</th>
+                    <th>Montant (€)</th>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in transactions %}
+                    <tr>
+                        <td>{{ formatDate(txn.created_at) }}</td>
+                        <td>{{ txn.creator_name }}</td>
+                        <td>{{ txn.donor_name }}</td>
+                        <td>{{ formatAmount(txn.amount) }}</td>
+                        <td>{{ txn.type }}</td>
+                        <td>{{ txn.message|default('') }}</td>
+                        <td>
+                            <a href="/admin/transactions/view/{{ txn.id }}" class="btn btn-view" title="Voir le détail"><i class="fas fa-eye"></i></a>
+                            <form action="/admin/transactions/anonymize" method="POST" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="txn_id" value="{{ txn.id }}">
+                                <button type="submit" class="btn btn-delete" title="Anonymiser"><i class="fas fa-user-secret"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if totalPages > 1 %}
+            <div class="pagination">
+                {% if page > 1 %}
+                    <a href="?page={{ page - 1 }}" class="btn btn-outline">&laquo; Précédent</a>
+                {% endif %}
+                {% for i in 1..totalPages %}
+                    <a href="?page={{ i }}" class="btn btn-outline {{ i == page ? 'active' : '' }}"> {{ i }} </a>
+                {% endfor %}
+                {% if page < totalPages %}
+                    <a href="?page={{ page + 1 }}" class="btn btn-outline">Suivant &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.transactions-manager {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+.filters-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.transactions-table-container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.transactions-table th,
+.transactions-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.transactions-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+.btn {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.btn-view {
+    background: none;
+    color: #2ecc71;
+}
+.btn-delete {
+    background: none;
+    color: #e74c3c;
+}
+.btn:hover {
+    background: #f8f9fa;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+.pagination .btn-outline {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #2c3e50;
+}
+.pagination .btn-outline:hover,
+.pagination .btn-outline.active {
+    background: #3498db;
+    border-color: #3498db;
+    color: #fff;
+}
+@media (max-width: 1200px) {
+    .filters-form {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+}
+</style>
+
+<script>
+function exportTransactionsCSV() {
+    window.location.href = '/admin/transactions/export-csv' + window.location.search;
+}
+</script>

@@ -1,0 +1,153 @@
+{% extends 'layouts/public.twig' %}
+
+{% set pageTitle = (creator.name|default('Créatrice')) ~ ' - Profil' %}
+
+{% block content %}
+<div class="creator-profile">
+    <div class="creator-header" style="background-image: url('{{ creator.banner_url|default('/assets/img/default-banner.jpg') }}')">
+        <div class="container">
+            <div class="creator-header-content">
+                <div class="creator-avatar">
+                    <img src="{{ creator.profile_pic_url|default('/assets/img/default-profile.jpg') }}" alt="{{ creator.name }}">
+                </div>
+                <div class="creator-title">
+                    <h1>{{ creator.name }}</h1>
+                    {% if creator.tagline %}
+                        <p class="creator-tagline">{{ creator.tagline }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="creator-content">
+            <div class="creator-main">
+                <div class="creator-stats-card">
+                    <div class="stat">
+                        <i class="fas fa-gift"></i>
+                        <span class="stat-value">{{ creator.total_donations|default(0)|number_format(2, ',', ' ') }}€</span>
+                        <span class="stat-label">Total des dons</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <span class="stat-value">{{ creator.donor_count|default(0) }}</span>
+                        <span class="stat-label">Donateurs</span>
+                    </div>
+                    {% if creator.donation_goal is defined and creator.donation_goal %}
+                        {% set goal = creator.donation_goal %}
+                        {% set total = creator.total_donations|default(0) %}
+                        {% set progress_raw = goal > 0 ? (total / goal) * 100 : 0 %}
+                        {% set progress_percentage = progress_raw > 100 ? 100 : progress_raw %}
+                        <div class="progress-section">
+                            <div class="progress-info">
+                                <span>Objectif : {{ goal|number_format(2, ',', ' ') }}€</span>
+                                <span>{{ progress_raw|number_format(1, ',', ' ') }}%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: {{ progress_percentage }}%"></div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if creator.description %}
+                    <div class="creator-about">
+                        <h2>À propos</h2>
+                        <div class="content">
+                            {{ creator.description|nl2br }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="donation-section">
+                    <h2>Faire un don</h2>
+                    <form action="/donations/add" method="POST" class="donation-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="creator_id" value="{{ creator.id }}">
+                        
+                        <div class="form-group">
+                            <label for="donor_name">Votre nom</label>
+                            <input type="text" id="donor_name" name="donor_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="donor_email">Votre email</label>
+                            <input type="email" id="donor_email" name="donor_email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="amount">Montant (€)</label>
+                            <input type="number" id="amount" name="amount" min="1" step="0.01" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="donation_type">Type de don</label>
+                            <select id="donation_type" name="donation_type" required>
+                                {% for type in donation_types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="comment">Message</label>
+                            <textarea id="comment" name="comment" rows="3" placeholder="Un petit mot pour {{ creator.name }} (optionnel)"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="button button-primary">
+                            <i class="fas fa-heart"></i> Faire un don
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="creator-sidebar">
+                {% if links %}
+                    <div class="creator-links">
+                        <h3>Liens utiles</h3>
+                        <ul>
+                            {% for link in links %}
+                                <li>
+                                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                                        <i class="fas fa-link"></i>
+                                        {{ link.title }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                {% if packs %}
+                    <div class="creator-packs">
+                        <h3>Packs disponibles</h3>
+                        <div class="packs-grid">
+                            {% for pack in packs %}
+                                <div class="pack-card">
+                                    {% if pack.image_url %}
+                                        <img src="{{ pack.image_url }}" alt="{{ pack.name }}">
+                                    {% endif %}
+                                    <div class="pack-info">
+                                        <h4>{{ pack.name }}</h4>
+                                        <p>{{ pack.description }}</p>
+                                        <div class="pack-price">{{ pack.price|number_format(2, ',', ' ') }}€</div>
+                                        <button class="button button-outline">
+                                            <i class="fas fa-shopping-cart"></i> Acheter
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+    {{ parent() }}
+    <script src="/assets/js/creator-profile.js"></script>
+{% endblock %}

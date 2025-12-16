@@ -9,49 +9,17 @@ use App\Core\Database;
 use App\Repositories\CreatorRepository;
 
 class BaseController {
-    protected $db;
-    protected $pdo;
     protected $view;
     protected $auth;
     protected $flash;
+    public $creatorRepository; // Temporarily public for child controllers
     protected $creator;
-    protected $creatorRepository;
 
-    public function __construct() {
-        // Initialiser les dépendances de base
-        $this->db = $this->pdo = Database::getInstance();
-        $this->view = new View();
-        $this->auth = new Auth();
-        $this->flash = new Flash();
-
-        // Initialiser le repository nécessaire AVANT de l'utiliser
-        $this->creatorRepository = new CreatorRepository($this->db);
-
-        // Charger le créateur si l'utilisateur est connecté et est un créateur
-        /* Suppression de la logique de chargement du créateur ici.
-         * Les contrôleurs enfants doivent charger $this->creator explicitement
-         * dans leurs méthodes si nécessaire pour éviter les problèmes de timing
-         * lors de l'instanciation via le Router.
-        if ($this->auth->isLoggedIn() && isset($_SESSION['creator_id'])) {
-            $creatorId = $_SESSION['creator_id'];
-            error_log("BaseController Constructor: Tentative de chargement creator ID {$creatorId}.");
-            // Vérifier si le repository est disponible
-            if ($this->creatorRepository) {
-                $this->creator = $this->creatorRepository->findById($creatorId);
-                // Log pour vérifier si le créateur a été trouvé
-                $isCreatorNull = is_null($this->creator) ? 'Oui' : 'Non';
-                error_log("BaseController Constructor: Tentative de chargement creator ID {$creatorId}. Trouvé ? {$isCreatorNull}");
-            } else {
-                error_log("BaseController Constructor: ERREUR - creatorRepository n'est PAS disponible !");
-                $this->creator = null; // Assurer que la propriété existe mais est null
-            }
-        } else {
-            $loggedIn = $this->auth->isLoggedIn() ? 'Oui' : 'Non';
-            $creatorIdSet = isset($_SESSION['creator_id']) ? ('Oui (' . $_SESSION['creator_id'] . ')') : 'Non'; // Correction parenthèse
-            error_log("BaseController Constructor: Non loggué ou creator_id non défini. LoggedIn: {$loggedIn}, CreatorIdSet: {$creatorIdSet}");
-            $this->creator = null; // Assurer que la propriété existe mais est null
-        }
-        */
+    public function __construct(View $view, Auth $auth, Flash $flash, CreatorRepository $creatorRepository) {
+        $this->view = $view;
+        $this->auth = $auth;
+        $this->flash = $flash;
+        $this->creatorRepository = $creatorRepository;
         $this->creator = null; // Initialiser à null par défaut
     }
 
@@ -92,7 +60,15 @@ class BaseController {
             if (defined('APP_DEBUG') && APP_DEBUG) {
                 throw $e;
             }
-            require APP_PATH . '/views/errors/500.php';
+
+            http_response_code(500);
+            try {
+                $this->view->setTitle('Erreur serveur');
+                $this->view->render('errors/500.html.twig', [], 'default');
+            } catch (\Throwable $inner) {
+                error_log('Erreur lors du rendu du template 500 : ' . $inner->getMessage());
+                echo '<h1>Erreur interne</h1><p>Veuillez réessayer ultérieurement.</p>';
+            }
         }
     }
 
@@ -113,7 +89,7 @@ class BaseController {
      * @return bool
      */
     protected function isAuthenticated() {
-        return isset($_SESSION['creator_id']);
+        return $this->auth->isLoggedIn();
     }
 
     /**
@@ -122,7 +98,7 @@ class BaseController {
      * @return bool
      */
     protected function isAdmin() {
-        return isset($_SESSION['creator_is_admin']) && $_SESSION['creator_is_admin'] === true;
+        return $this->auth->isAdmin();
     }
 
     /**
@@ -131,7 +107,7 @@ class BaseController {
      * @return int|null
      */
     protected function getCurrentUserId() {
-        return $_SESSION['creator_id'] ?? null;
+        return $this->auth->getCurrentUserId();
     }
 
     /**
@@ -141,7 +117,7 @@ class BaseController {
      * @return bool
      */
     protected function verifyCsrfToken($token) {
-        return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+        return \App\Core\App::make(\App\Core\Csrf::class)->verifyToken($token);
     }
 
     /**
@@ -150,9 +126,7 @@ class BaseController {
      * @return string
      */
     protected function generateCsrfToken() {
-        $token = bin2hex(random_bytes(32));
-        $_SESSION['csrf_token'] = $token;
-        return $token;
+        return \App\Core\App::make(\App\Core\Csrf::class)->generateToken();
     }
 
     /**
@@ -178,5 +152,13 @@ class BaseController {
      */
     protected function jsonError($message, $status = 400) {
         $this->jsonResponse(['error' => $message], $status);
+    }
+
+    protected function requireLogin() {
+        if (!$this->auth->isLoggedIn()) {
+            $this->flash->error("Vous devez être connecté pour accéder à cette page.");
+            $this->redirect('/login');
+            exit;
+        }
     }
 }

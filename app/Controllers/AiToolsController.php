@@ -4,19 +4,17 @@ namespace App\Controllers;
 
 use App\Core\BaseController;
 use App\Core\View;
-use App\Core\Csrf; // Assurer l'importation correcte
-use App\Core\Log;
+use App\Core\Auth;
+use App\Core\Flash;
+use App\Repositories\CreatorRepository;
 
 class AiToolsController extends BaseController
 {
     private bool $aiConfigLoaded = false;
 
-    /**
-     * Constructeur pour s'assurer que les dépendances parentes sont injectées.
-     */
-    public function __construct()
+    public function __construct(View $view, Auth $auth, Flash $flash, CreatorRepository $creatorRepository)
     {
-        parent::__construct(); // Appel essentiel au constructeur parent
+        parent::__construct($view, $auth, $flash, $creatorRepository);
     }
 
     /**
@@ -47,9 +45,11 @@ class AiToolsController extends BaseController
 
         // Utiliser la méthode render héritée de BaseController
         // Le layout 'creator_dashboard' déclenchera l'injection auto de $creator et $dailyTip
-        $this->render('creator/ai_tools', [ 
+        $this->view->addScript('https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js');
+        $this->view->addScript('/assets/js/ai_tools.js');
+        $this->render('creator/ai_tools.html.twig', [ 
             'pageTitle' => 'Outils IA',
-            'csrfToken' => Csrf::generateToken() // Utiliser la méthode statique cohérente
+            'csrf_token' => Csrf::generateToken()
         ], 'creator_dashboard');
     }
 
@@ -404,9 +404,9 @@ class AiToolsController extends BaseController
 
         if ($apiContent === null) {
              // Essayer de récupérer un message d'erreur plus précis si possible
-             $errorDetail = $responseData['error']['message'] ?? json_encode($responseData);
+             $errorDetail = $responseData['error']['message'] ?? 'An unexpected error occurred with the AI service.';
              error_log("Réponse API invalide ou contenu manquant. Réponse brute: " . $response);
-            throw new \Exception("Impossible d'extraire le contenu de la réponse de l'API. Détail: " . $errorDetail);
+            throw new \Exception("AI service error: " . $errorDetail);
         }
 
         return $apiContent;

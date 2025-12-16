@@ -81,26 +81,28 @@ public function getAverageDonation($creatorId)
     }
 
     /**
-     * Ajoute un don dans la base de données
-     * @param string $donorName
-     * @param float $amount
-     * @param string $donationType
-     * @param string|null $comment
-     * @return bool
+     * Ajoute un don (public ou côté dashboard)
      */
-    public function addDonation($donorName, $donorEmail, $amount, $donationType, $comment = null)
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        $creatorId = isset($_SESSION['creator_id']) ? intval($_SESSION['creator_id']) : null;
-        if (!$creatorId) return false;
-        // Gestion du timer pour fan fidèle
+    public function addDonation(
+        int $creatorId,
+        string $donorName,
+        string $donorEmail,
+        float $amount,
+        string $donationType,
+        ?string $comment = null,
+        string $status = 'completed'
+    ): bool {
         $timerEnd = null;
-        if (strtolower($donationType) === 'fan_fidele' || strtolower($donationType) === 'fan fidèle') {
+        if ($this->shouldStartFanTimer($donationType)) {
             $timerEnd = date('Y-m-d H:i:s', strtotime('+1 month'));
         }
-        $sql = "INSERT INTO donations (creator_id, donor_name, donor_email, amount, donation_type, comment, created_at, timer_end) VALUES (:creator_id, :donor_name, :donor_email, :amount, :donation_type, :comment, CURRENT_TIMESTAMP, :timer_end)";
+
+        $sql = "INSERT INTO donations (
+                    creator_id, donor_name, donor_email, amount, donation_type, comment, status, created_at, timer_end
+                ) VALUES (
+                    :creator_id, :donor_name, :donor_email, :amount, :donation_type, :comment, :status, CURRENT_TIMESTAMP, :timer_end
+                )";
+
         $params = [
             ':creator_id' => $creatorId,
             ':donor_name' => $donorName,
@@ -108,8 +110,10 @@ public function getAverageDonation($creatorId)
             ':amount' => $amount,
             ':donation_type' => $donationType,
             ':comment' => $comment,
+            ':status' => $status,
             ':timer_end' => $timerEnd
         ];
+
         try {
             $this->db->execute($sql, $params);
             return true;
@@ -117,6 +121,18 @@ public function getAverageDonation($creatorId)
             error_log('Erreur ajout don: ' . $e->getMessage());
             return false;
         }
+    }
+
+    private function shouldStartFanTimer(string $donationType): bool
+    {
+        $normalized = strtolower(trim($donationType));
+
+        return in_array($normalized, [
+            'fan_fidele',
+            'fan fidèle',
+            'fan-fidele',
+            'fan-fidèle'
+        ], true);
     }
 
 // Ajoute d'autres méthodes métier ici (type_stats, pagination, etc.)

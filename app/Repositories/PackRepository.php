@@ -18,6 +18,13 @@ class PackRepository
         $stmt = $this->db->execute($sql, [':creator_id' => $creatorId]);
         return $stmt->fetchAll();
     }
+
+    public function getPublicPacksByCreator($creatorId)
+    {
+        $sql = "SELECT * FROM packs WHERE creator_id = :creator_id AND is_active = 1 ORDER BY price ASC";
+        $stmt = $this->db->execute($sql, [':creator_id' => $creatorId]);
+        return $stmt->fetchAll();
+    }
     public function findById($id)
     {
         $sql = "SELECT * FROM packs WHERE id = :id";
@@ -60,6 +67,12 @@ class PackRepository
             ':creator_id' => $creatorId
         ];
         return $this->db->execute($sql, $params);
+    }
+
+    public function getPopularPacks()
+    {
+        // TODO: Implement logic to get popular packs
+        return [];
     }
     // Ajoute d'autres méthodes métier ici (findById, create, update, etc.)
 }

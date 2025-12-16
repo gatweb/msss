@@ -1,0 +1,63 @@
+<div class="card messages-page-card">
+    <h1><i class="fas fa-envelope"></i> Messages des donateurs</h1>
+
+    <div class="messages-actions">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" placeholder="Rechercher..." onkeyup="filterMessages(this.value)">
+        </div>
+        <div class="filter-dropdown">
+            <button class="btn btn-outline" onclick="toggleFilterMenu()">
+                <i class="fas fa-filter"></i>
+                Filtrer
+            </button>
+            <div class="filter-menu" style="display: none;">
+                <label class="filter-option">
+                    <input type="checkbox" checked onchange="toggleFilter('unread')">
+                    Non lus
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" checked onchange="toggleFilter('read')">
+                    Lus
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" checked onchange="toggleFilter('with_donation')">
+                    Avec don
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="messages-layout">
+        <div class="messages-list-container">
+            <!-- Liste des messages ici -->
+            {% for message in messages %}
+                <div class="message-item {{ not message.read ? 'unread' : '' }}" 
+                     data-id="{{ message.id }}" 
+                     onclick="selectMessage({{ message.id }}, {{ message.sender_id }})">
+                    <div class="message-header">
+                        <span class="donor-name">{{ message.sender_name|default('Utilisateur inconnu') }}</span>
+                        <span class="message-time">{{ message.created_at|date('d/m/y') }}</span>
+                    </div>
+                    <p class="message-snippet">{{ message.content|truncate(50) }}</p>
+                    {% if message.donation_amount is not empty %}
+                        <span class="donation-badge">Don: {{ message.donation_amount|number_format(2, ',', ' ') }} €</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% if messages is empty %}
+                <div class="empty-state-list">
+                    <p>Aucun message pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="message-detail-container card" id="messageDetail">
+            <!-- Le contenu détaillé du message s'affichera ici -->
+            <div class="empty-state-detail">
+                <p><i class="fas fa-arrow-left"></i> Sélectionnez un message pour le lire</p>
+            </div>
+        </div>
+    </div>
+</div>
+

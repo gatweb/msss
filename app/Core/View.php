@@ -131,6 +131,7 @@ class View
 
         $this->twig->addGlobal('current_path', $_SERVER['REQUEST_URI'] ?? '/');
         $this->twig->addGlobal('app_debug', defined('APP_DEBUG') ? APP_DEBUG : false);
+        $this->twig->addGlobal('session', $_SESSION ?? []);
 
         $this->twig->addFunction(new TwigFunction('asset', static function (string $path): string {
             if (function_exists('asset')) {
@@ -188,6 +189,12 @@ class View
 
             return number_format((float) $value, $decimals, ',', ' ') . ' ' . $currency;
         }));
+
+        $this->twig->addFunction(new TwigFunction('formatDate', 'formatDate'));
+        $this->twig->addFunction(new TwigFunction('formatAmount', 'formatAmount'));
+        $this->twig->addFilter(new TwigFilter('truncate', 'truncate'));
+        $this->twig->addFunction(new TwigFunction('appName', 'appName'));
+        $this->twig->addFunction(new TwigFunction('assetPath', 'assetPath'));
     }
 
     private function resolveLayoutTemplate(): string

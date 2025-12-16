@@ -1,0 +1,199 @@
+
+<div class="donator-profile-container">
+    <a href="/dashboard/donators" class="btn btn-light mb-3">&larr; Retour à la liste</a>
+    <div class="section-title-bar">
+        <div>
+            <h2>
+                <span class="donator-avatar">
+                    {{ donator.donor_name|first|upper }}
+                </span>
+                {{ donator.donor_name }} <small>({{ donator.donor_email }})</small>
+                {% set status_labels = {
+                    'client': ['Client', 'badge-success'],
+                    'indesirable': ['Indésirable', 'badge-danger'],
+                    'attente': ['En attente', 'badge-warning'],
+                    'prospect': ['Prospect', 'badge-info'],
+                    'ancien': ['Ancien', 'badge-secondary'],
+                } %}
+                {% set status = notes.crm_status|default('prospect') %}
+                {% if status_labels[status] is defined %}
+                    <span class="badge {{ status_labels[status][1] }} ml-2">{{ status_labels[status][0] }}</span>
+                {% endif %}
+            </h2>
+            <div class="donator-meta">
+                <span>Total des dons : <strong>{{ donator.total_amount|number_format(2, ',', ' ') }} €</strong></span>
+                <span>Dernier don : <strong>{{ donator.last_donation ? donator.last_donation|date('d/m/Y H:i') : '-' }}</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="#" class="donator-notes-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="crm_phone">Téléphone</label>
+                <input type="text" class="form-control" id="crm_phone" name="crm_phone" value="{{ notes.crm_phone|default('') }}" placeholder="Numéro de téléphone">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="crm_status">Statut du contact</label>
+                <select class="form-control form-control-sm" id="crm_status" name="crm_status">
+                    <option value="prospect" {{ (notes.crm_status|default('')) == 'prospect' ? 'selected' : '' }}>Prospect</option>
+                    <option value="client" {{ (notes.crm_status|default('')) == 'client' ? 'selected' : '' }}>Client</option>
+                    <option value="ancien" {{ (notes.crm_status|default('')) == 'ancien' ? 'selected' : '' }}>Ancien</option>
+                    <option value="attente" {{ (notes.crm_status|default('')) == 'attente' ? 'selected' : '' }}>En attente</option>
+                    <option value="indesirable" {{ (notes.crm_status|default('')) == 'indesirable' ? 'selected' : '' }}>Indésirable</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label>Préférences personnelles :</label><br>
+                <label class="checkbox-inline mr-3">
+                    <input type="checkbox" name="pref_gift" {{ notes.pref_gift is not empty ? 'checked' : '' }}> Aime recevoir des cadeaux
+                </label>
+                <label class="checkbox-inline mr-3">
+                    <input type="checkbox" name="pref_anonymous" {{ notes.pref_anonymous is not empty ? 'checked' : '' }}> Préfère l'anonymat
+                </label>
+                <label class="checkbox-inline mr-3">
+                    <input type="checkbox" name="pref_birthday" {{ notes.pref_birthday is not empty ? 'checked' : '' }}> Anniversaire à fêter
+                </label>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="crm_source">Source</label>
+                <input type="text" class="form-control" id="crm_source" name="crm_source" value="{{ notes.crm_source|default('') }}" placeholder="Ex: Réseaux sociaux, bouche-à-oreille...">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="crm_first_contact">Date de premier contact</label>
+                <input type="date" class="form-control" id="crm_first_contact" name="crm_first_contact" value="{{ notes.crm_first_contact|default('') }}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="crm_birthday">Anniversaire</label>
+                <input type="date" class="form-control" id="crm_birthday" name="crm_birthday" value="{{ notes.crm_birthday ? notes.crm_birthday|date('Y-m-d') : '' }}">
+            </div>
+        </div>
+        <div class="form-group mt-3">
+            <label>Suivi&nbsp;:</label><br>
+            <label class="checkbox-inline mr-3">
+                <input type="checkbox" name="merci_envoye" {{ notes.merci_envoye is not empty ? 'checked' : '' }}> Merci envoyé
+            </label>
+            <label class="checkbox-inline mr-3">
+                <input type="checkbox" name="cadeau_envoye" {{ notes.cadeau_envoye is not empty ? 'checked' : '' }}> Cadeau expédié
+            </label>
+            <label class="checkbox-inline mr-3">
+                <input type="checkbox" name="vip" {{ notes.vip is not empty ? 'checked' : '' }}> VIP
+            </label>
+            <label class="checkbox-inline mr-3">
+                <input type="checkbox" name="fan_fidele" id="fan_fidele" {{ notes.fan_fidele is not empty ? 'checked' : '' }}> <span style="color:#e67e22;">Fan fidèle ⭐</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label for="commentaire">Commentaire interne :</label>
+            <textarea class="form-control" id="commentaire" name="commentaire" rows="3" placeholder="Ajoutez une note...">{{ notes.commentaire|default('') }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Enregistrer le suivi</button>
+    </form>
+    <hr>
+
+    <div class="mt-4">
+        <h4>Historique des dons</h4>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Montant</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for don in donations %}
+                <tr>
+                    <td>{{ don.created_at ? don.created_at|date('d/m/Y H:i') : '-' }}</td>
+                    <td>{{ don.amount|number_format(2, ',', ' ') }} €</td>
+                    <td>{{ don.message|default('') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-3">
+        <a href="mailto:{{ donator.donor_email }}" class="btn btn-outline-primary">Envoyer un message</a>
+    </div>
+</div>
+
+<style>
+.donator-profile-container {
+    max-width: 600px;
+    margin: 1.2rem auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 1.2rem 1.2rem;
+}
+.section-title-bar {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+}
+.donator-avatar {
+    background: #e9ecef;
+    color: #5c636a;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.4rem;
+    margin-right: 12px;
+}
+.donator-summary .badge {
+    margin-right: 8px;
+    font-size: 1rem;
+}
+.donator-notes-form {
+    margin-top: 0.7rem;
+    margin-bottom: 1rem;
+}
+.donator-notes-form .form-control, .donator-notes-form .form-control-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.95rem;
+    height: 2rem;
+}
+.donator-notes-form .form-group {
+    margin-bottom: 0.5rem;
+}
+.donator-notes-form label {
+    font-size: 0.98rem;
+    margin-bottom: 0.15rem;
+}
+.donator-notes-form .checkbox-inline {
+    margin-bottom: 0.2rem;
+}
+.donator-notes-form textarea.form-control {
+    min-height: 2.2rem;
+    font-size: 0.97rem;
+}
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.7em;
+    font-size: 0.93em;
+    font-weight: 500;
+    border-radius: 0.7em;
+    vertical-align: middle;
+}
+.badge-success { background: #27ae60; color: #fff; }
+.badge-danger { background: #e74c3c; color: #fff; }
+.badge-warning { background: #f39c12; color: #fff; }
+.badge-info { background: #3498db; color: #fff; }
+.badge-secondary { background: #95a5a6; color: #fff; }
+.fan-counter {
+    color: #e67e22;
+    font-weight: bold;
+    font-size: 0.97em;
+}
+</style>

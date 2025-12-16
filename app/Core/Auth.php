@@ -6,56 +6,46 @@ class Auth {
     private $pdo;
     private $session;
 
-    public function __construct() {
+    public function __construct(Session $session) {
         $this->pdo = Database::getInstance()->getConnection();
+        $this->session = $session;
     }
 
     public function login($email, $password) {
         try {
             error_log("DEBUG: Début de la méthode login");
-            error_log("DEBUG: Email fourni = " . $email);
-            error_log("DEBUG: Password fourni = " . substr($password, 0, 1) . '***');
             
             if (!$this->pdo) {
-                error_log("ERREUR: PDO n'est pas initialisé!");
                 return false;
             }
             
             $stmt = $this->pdo->prepare("SELECT * FROM creators WHERE email = ? AND is_active = 1");
             if (!$stmt) {
-                error_log("ERREUR: Échec de la préparation de la requête");
                 return false;
             }
             
             $stmt->execute([$email]);
             $creator = $stmt->fetch();
             
-            error_log("DEBUG: Résultat de la requête : " . ($creator ? "Utilisateur trouvé" : "Utilisateur non trouvé"));
-            if ($creator) {
-                error_log("DEBUG: Hash stocké = " . $creator['password']);
-            }
-            
             if (!$creator) {
-                error_log("DEBUG: Aucun utilisateur trouvé avec cet email");
                 return false;
             }
             
             $passwordValid = password_verify($password, $creator['password']);
-            error_log("DEBUG: Résultat de password_verify = " . ($passwordValid ? "true" : "false"));
             
             if ($passwordValid) {
                 // Initialiser la session
-                if (!isset($_SESSION['initialized'])) {
-                    session_regenerate_id(true);
-                    $_SESSION['initialized'] = 1;
-                    $_SESSION['csrf_token'] = $this->generateToken();
+                if (!$this->session->has('initialized')) {
+                    $this->session->regenerate();
+                    $this->session->set('initialized', 1);
+                    $this->session->set('csrf_token', $this->generateToken());
                 }
 
                 // Définir les données de session
-                $_SESSION['creator_id'] = $creator['id'];
-                $_SESSION['creator_name'] = $creator['name'];
-                $_SESSION['creator_username'] = $creator['username'] ?? null;
-                $_SESSION['creator_is_admin'] = $creator['is_admin'];
+                $this->session->set('creator_id', $creator['id']);
+                $this->session->set('creator_name', $creator['name']);
+                $this->session->set('creator_username', $creator['username'] ?? null);
+                $this->session->set('creator_is_admin', $creator['is_admin']);
                 
                 return true;
             }
@@ -68,25 +58,28 @@ class Auth {
     }
 
     public function logout() {
-        session_unset();
-        session_destroy();
+        $this->session->destroy();
         return true;
     }
 
     public function isLoggedIn() {
-        return isset($_SESSION['creator_id']) && isset($_SESSION['initialized']);
+        return $this->session->has('creator_id') && $this->session->has('initialized');
     }
 
     public function getCurrentUserId() {
-        return $_SESSION['creator_id'] ?? null;
+        return $this->session->get('creator_id');
     }
 
     public function getCurrentUserRole() {
-        return $_SESSION['creator_is_admin'] ? 'admin' : 'user';
+        return $this->session->get('creator_is_admin') ? 'admin' : 'user';
     }
 
     public function isAdmin() {
-        return isset($_SESSION['creator_is_admin']) && $_SESSION['creator_is_admin'] === 1;
+        return $this->session->get('creator_is_admin') === 1;
+    }
+
+    public function isCreator() {
+        return $this->isLoggedIn();
     }
 
     public function requireAuth() {
@@ -112,6 +105,6 @@ class Auth {
     }
 
     public function validateToken($token) {
-        return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+        return hash_equals($this->session->get('csrf_token', ''), $token);
     }
 }

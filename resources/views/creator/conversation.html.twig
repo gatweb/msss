@@ -1,0 +1,38 @@
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Conversation avec {{ otherUser.name }}</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Messages</h6>
+        </div>
+        <div class="card-body" style="height: 400px; overflow-y: scroll;">
+            {% for message in messages %}
+                {% if message.sender_id == creator.id %}
+                    <!-- Message envoyé par le créateur -->
+                    <div class="text-right">
+                        <p class="bg-primary text-white p-2 rounded d-inline-block"><strong>Vous:</strong><br>{{ message.content }}</p>
+                        <br><small class="text-muted">{{ message.created_at|date('d/m/Y H:i') }}</small>
+                    </div>
+                {% else %}
+                    <!-- Message reçu -->
+                    <div>
+                        <p class="bg-light p-2 rounded d-inline-block"><strong>{{ otherUser.name }}:</strong><br>{{ message.content }}</p>
+                        <br><small class="text-muted">{{ message.created_at|date('d/m/Y H:i') }}</small>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="card-footer">
+            <form action="/profile/messages/reply/{{ otherUser.id }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="input-group">
+                    <input type="text" name="content" class="form-control" placeholder="Écrire un message..." required>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">Envoyer</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

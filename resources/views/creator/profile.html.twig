@@ -1,0 +1,93 @@
+
+<div class="row">
+    <div class="col s12 m12">
+        <div class="card">
+            <div class="card-image" style="background: #e3e3e3;">
+                <img src="{{ creator.banner_url|default('/assets/img/default-banner.jpg') }}" alt="Bannière" style="height:200px; object-fit:cover; width:100%;">
+                <a class="btn-floating halfway-fab waves-effect waves-light blue modal-trigger" href="#bannerModal"><i class="fas fa-camera"></i></a>
+            </div>
+            <div class="card-content center-align">
+                <img src="{{ creator.profile_pic_url|default('/assets/img/default-avatar.png') }}" alt="Avatar" class="circle responsive-img z-depth-2" style="width:120px; margin-top:-70px; border:4px solid #fff;">
+                <a class="btn-floating btn-small waves-effect waves-light blue modal-trigger" href="#avatarModal" style="position:relative; top:-45px; left:40px;"><i class="fas fa-camera"></i></a>
+                <h5>{{ creator.name }}</h5>
+                <span class="grey-text">@{{ creator.tagline }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col s12 m6">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title">Informations de base</span>
+                <form id="profileForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="input-field">
+                        <input id="name" name="name" type="text" value="{{ creator.name }}">
+                        <label for="name" class="active">Nom d'affichage</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="tagline" name="tagline" type="text" value="{{ creator.tagline }}">
+                        <label for="tagline" class="active">Tagline</label>
+                    </div>
+                    <div class="input-field">
+                        <textarea id="description" name="description" class="materialize-textarea" rows="4">{{ creator.description }}</textarea>
+                        <label for="description" class="active">Description</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="donation_goal" name="donation_goal" type="number" step="0.01" min="0" value="{{ creator.donation_goal }}">
+                        <label for="donation_goal" class="active">Objectif de dons (€)</label>
+                    </div>
+                    <button type="submit" class="btn blue waves-effect waves-light">
+                        <i class="fas fa-save left"></i>Enregistrer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col s12 m6">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title">Mes Liens</span>
+                <a class="btn-floating btn-small waves-effect waves-light green right modal-trigger" href="#addLinkModal"><i class="fas fa-plus"></i></a>
+                <ul class="collection">
+                    {% if links is not empty %}
+                        {% for link in links %}
+                            <li class="collection-item avatar">
+                                <i class="fas fa-link circle blue"></i>
+                                <span class="title">{{ link.title }}</span>
+                                <p><a href="{{ link.url }}" target="_blank">Lien externe</a></p>
+                                <a href="#editLinkModal" class="secondary-content modal-trigger"><i class="fas fa-edit"></i></a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="collection-item">Aucun lien enregistré.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="addLinkModal" class="modal">
+    ...
+</div>
+<div id="editLinkModal" class="modal">
+    ...
+</div>
+<div class="modal fade" id="avatarModal">
+    ...
+</div>
+<div class="modal fade" id="bannerModal">
+    ...
+</div>
+<div class="modal fade" id="linkModal">
+    ...
+</div>
+<div class="modal fade" id="packModal">
+    ...
+</div>
+
+<script src="/assets/js/profile.js"></script>

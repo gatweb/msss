@@ -11,17 +11,14 @@ function e($string) {
  * Génère un token CSRF
  */
 function generateCsrfToken() {
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
+    return \App\Core\App::make(\App\Core\Csrf::class)->generateToken();
 }
 
 /**
  * Vérifie un token CSRF
  */
 function verifyCsrfToken($token) {
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    return \App\Core\App::make(\App\Core\Csrf::class)->verifyToken($token);
 }
 
 /**
@@ -129,7 +126,8 @@ function json($data, $status = 200) {
  */
 function notFound() {
     header('HTTP/1.0 404 Not Found');
-    require APP_PATH . '/views/errors/404.php';
+    $view = new \App\Core\View();
+    $view->render('errors/404.html.twig');
     exit;
 }
 
@@ -138,7 +136,8 @@ function notFound() {
  */
 function forbidden() {
     header('HTTP/1.0 403 Forbidden');
-    require APP_PATH . '/views/errors/403.php';
+    $view = new \App\Core\View();
+    $view->render('errors/403.html.twig');
     exit;
 }
 
@@ -183,15 +182,12 @@ function files($key) {
  */
 if (!function_exists('session')) {
     function session($key = null, $default = null) {
+        $session = \App\Core\App::make(\App\Core\Session::class);
         if (is_null($key)) {
-            return $_SESSION;
+            return $session->all();
         }
 
-        if (isset($_SESSION[$key])) {
-            return $_SESSION[$key];
-        }
-
-        return $default;
+        return $session->get($key, $default);
     }
 }
 
@@ -199,14 +195,14 @@ if (!function_exists('session')) {
  * Définit une valeur dans $_SESSION
  */
 function setSession($key, $value) {
-    $_SESSION[$key] = $value;
+    \App\Core\App::make(\App\Core\Session::class)->set($key, $value);
 }
 
 /**
  * Supprime une valeur de $_SESSION
  */
 function unsetSession($key) {
-    unset($_SESSION[$key]);
+    \App\Core\App::make(\App\Core\Session::class)->remove($key);
 }
 
 /**
@@ -214,18 +210,26 @@ function unsetSession($key) {
  */
 if (!function_exists('flash')) {
     function flash($message = null, $type = 'info') {
-        if (!isset($_SESSION['flash'])) {
-            $_SESSION['flash'] = [];
+        $session = \App\Core\App::make(\App\Core\Session::class);
+        
+        // Si pas de message, on retourne tous les messages
+        if (is_null($message)) {
+            return $session->get('flash', []);
         }
 
-        if (!is_null($message)) {
-            $_SESSION['flash'][] = [
-                'message' => $message,
-                'type' => $type
-            ];
+        // Sinon on ajoute un message
+        $flashes = $session->get('flash');
+        if (!is_array($flashes)) {
+            $flashes = [];
         }
 
-        return $_SESSION['flash'] ?? [];
+        $flashes[] = [
+            'message' => $message,
+            'type' => $type
+        ];
+
+        $session->set('flash', $flashes);
+        return $flashes;
     }
 }
 
@@ -484,9 +488,10 @@ if (!function_exists('format_money')) {
 if (!function_exists('flash_messages')) {
     function flash_messages(): array {
         $messages = [];
+        $session = \App\Core\App::make(\App\Core\Session::class);
 
-        if (isset($_SESSION['flash'])) {
-            $flash = $_SESSION['flash'];
+        if ($session->has('flash')) {
+            $flash = $session->get('flash');
 
             if (isset($flash['message'])) {
                 $messages[] = $flash;
@@ -498,11 +503,12 @@ if (!function_exists('flash_messages')) {
                 }
             }
 
-            unset($_SESSION['flash']);
+            $session->remove('flash');
         }
 
-        if (isset($_SESSION['flash_messages'])) {
-            foreach ($_SESSION['flash_messages'] as $type => $entries) {
+        if ($session->has('flash_messages')) {
+            $flashMessages = $session->get('flash_messages');
+            foreach ($flashMessages as $type => $entries) {
                 foreach ((array) $entries as $entry) {
                     if (is_array($entry) && isset($entry['message'])) {
                         $messages[] = [
@@ -518,7 +524,7 @@ if (!function_exists('flash_messages')) {
                 }
             }
 
-            unset($_SESSION['flash_messages']);
+            $session->remove('flash_messages');
         }
 
         return $messages;

@@ -2,19 +2,28 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
+use App\Core\BaseController;
+use App\Core\View;
+use App\Core\Auth;
+use App\Core\Flash;
+use App\Repositories\CreatorRepository;
 use App\Repositories\MessageRepository;
 use App\Models\Message;
+use App\Core\Csrf;
 
 class MessagesController extends BaseController
 {
     protected $messageRepo;
 
-    public function __construct()
-    {
-        parent::__construct();
-        // Instancie le repository avec la connexion DB du singleton
-        $this->messageRepo = new MessageRepository(\App\Core\Database::getInstance());
+    public function __construct(
+        View $view,
+        Auth $auth,
+        Flash $flash,
+        CreatorRepository $creatorRepository,
+        MessageRepository $messageRepo
+    ) {
+        parent::__construct($view, $auth, $flash, $creatorRepository);
+        $this->messageRepo = $messageRepo;
     }
 
     public function index()
@@ -22,11 +31,10 @@ class MessagesController extends BaseController
         $this->requireCreator();
         $creatorId = $this->creator['id'];
         $messagesData = $this->messageRepo->getByCreator($creatorId);
-        // Transforme les tableaux en objets Message
         $messages = array_map(fn($data) => new Message($data), $messagesData);
 
-        // $creator est automatiquement injecté par BaseController::render pour le layout 'creator_dashboard'
-        $this->render('creator/messages', ['messages' => $messages], 'creator_dashboard');
+        $this->view->addScript('/assets/js/messages.js');
+        $this->render('creator/messages.html.twig', ['messages' => $messages], 'creator_dashboard');
     }
 
     public function showConversation(int $otherUserId)
@@ -34,39 +42,40 @@ class MessagesController extends BaseController
         $this->requireCreator();
         $creatorId = $this->creator['id'];
 
-        // Récupérer les messages de la conversation
         $messagesData = $this->messageRepo->getConversation($creatorId, $otherUserId);
         $messages = array_map(fn($data) => new Message($data), $messagesData);
 
-        // Récupérer les informations de l'autre utilisateur (simplifié)
-        // Dans une vraie app, on utiliserait un UserRepository
-        $userRepo = new \App\Repositories\CreatorRepository(\App\Core\Database::getInstance());
-        $otherUser = $userRepo->find($otherUserId);
+        $otherUser = $this->creatorRepository->findById($otherUserId);
 
-        $this->render('creator/conversation', [
+        $this->render('creator/conversation.html.twig', [
             'messages' => $messages,
-            'otherUser' => $otherUser
+            'otherUser' => $otherUser,
+            'csrf_token' => Csrf::generateToken()
         ], 'creator_dashboard');
     }
 
     public function reply(int $otherUserId)
     {
         $this->requireCreator();
-        $creatorId = $this->creator['id'];
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Csrf::verifyToken($_POST['csrf_token'])) {
+                $this->flash->error('Session invalide. Veuillez réessayer.');
+                $this->redirect('/profile/messages/conversation/' . $otherUserId);
+                return;
+            }
 
-        if ($this->isPost()) {
             $content = $_POST['content'] ?? '';
 
             if (!empty($content)) {
                 $this->messageRepo->create([
-                    'sender_id' => $creatorId,
+                    'sender_id' => $this->creator['id'],
                     'receiver_id' => $otherUserId,
                     'content' => $content
                 ]);
             }
         }
 
-        // Rediriger vers la conversation
         $this->redirect('/profile/messages/conversation/' . $otherUserId);
     }
 
@@ -75,22 +84,21 @@ class MessagesController extends BaseController
     public function getMessage(int $messageId)
     {
         $this->requireCreator();
-        // Dans une vraie app, on vérifierait que le message appartient bien au créateur
-        $message = $this->messageRepo->find($messageId); // find() n'existe pas encore
+        $message = $this->messageRepo->find($messageId);
         $this->jsonResponse($message);
     }
 
     public function markAsRead(int $messageId)
     {
         $this->requireCreator();
-        $this->messageRepo->markAsRead($messageId); // markAsRead() n'existe pas encore
+        $this->messageRepo->markAsRead($messageId);
         $this->jsonResponse(['success' => true]);
     }
 
     public function archiveMessage(int $messageId)
     {
         $this->requireCreator();
-        $this->messageRepo->archive($messageId); // archive() n'existe pas encore
+        $this->messageRepo->archive($messageId);
         $this->jsonResponse(['success' => true]);
     }
 }

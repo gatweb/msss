@@ -35,7 +35,7 @@ try {
     require_once APP_PATH . '/bootstrap.php';
 
     // Créer l'instance du routeur
-    $router = new \App\Core\Router();
+    $router = new \App\Core\Router($container);
 
     // Charger les routes
     require_once __DIR__ . '/../app/routes.php';
