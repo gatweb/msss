@@ -1,77 +1,69 @@
-{% set headerClasses = headerClasses|default('creator-header') %}
-{% if 'site-header' not in headerClasses %}
-    {% set headerClasses = 'site-header ' ~ headerClasses %}
-{% endif %}
+{% set headerClasses = headerClasses|default('bg-white border-b border-secondary-200 sticky top-0 z-30') %}
 {% set logoHref = logoHref|default('/') %}
 {% set logoLabel = logoLabel|default('Msss') %}
 {% set logoSubLabel = logoSubLabel|default('Espace créatrice') %}
 {% set logoImage = logoImage is defined ? logoImage : '/assets/img/logo.png' %}
-{% if profileActive is not defined %}
-    {% set profileActive = is_active_path('/profile') and not (is_active_path('/profile/messages') or is_active_path('/profile/packs')) %}
-{% endif %}
-{% set defaultNavLinks = [
-    {'label': 'Profil', 'href': '/profile', 'match': '/profile', 'icon': 'fas fa-user', 'isActive': profileActive},
-    {'label': 'Dashboard', 'href': '/dashboard', 'match': '/dashboard', 'icon': 'fas fa-gauge-high'},
-    {'label': 'Packs', 'href': '/profile/packs', 'match': '/profile/packs', 'icon': 'fas fa-box'},
-    {'label': 'Messages', 'href': '/profile/messages', 'match': '/profile/messages', 'icon': 'fas fa-envelope'}
-] %}
-{% set navLinks = navLinks|default(defaultNavLinks) %}
-{% set computedNavLinks = [] %}
-{% for link in navLinks %}
-    {% set href = link.href|default('#') %}
-    {% set match = link.match|default(href) %}
-    {% set linkIsActive = link.isActive is defined ? link.isActive : is_active_path(match) %}
-    {% set computedNavLinks = computedNavLinks|merge([link|merge({'href': href, 'match': match, 'isActive': linkIsActive})]) %}
-{% endfor %}
-{% set defaultActionButtons = [
-    {'label': 'Déconnexion', 'href': '/logout', 'icon': 'fas fa-sign-out-alt', 'variant': 'primary'}
-] %}
-{% set actionButtons = actionButtons|default(defaultActionButtons) %}
+
 <header class="{{ headerClasses|trim }}">
-    <div class="site-header__inner">
-        <a href="{{ logoHref }}" class="site-logo">
-            {% if logoImage %}
-                <img src="{{ logoImage }}" alt="{{ logoLabel }}">
-            {% endif %}
-            <span>
-                {{ logoLabel }}
-                {% if logoSubLabel %}
-                    <small>{{ logoSubLabel }}</small>
-                {% endif %}
-            </span>
-        </a>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {# Logo Area #}
+        <div class="flex items-center gap-4">
+            <button id="mobile-menu-trigger" class="lg:hidden text-secondary-500 hover:text-primary-600 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            
+            <a href="{{ logoHref }}" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <img src="{{ logoImage }}" alt="{{ logoLabel }}" class="h-16 w-auto transition-transform group-hover:scale-105">
+                    <div class="absolute -bottom-1 -right-1 bg-accent-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-md leading-none shadow-sm">
+                        CR
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    {# Label Removed as requested #}
+                    {% if logoSubLabel %}
+                        <span class="text-xs text-secondary-500 font-medium tracking-wide">{{ logoSubLabel }}</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
 
-        <nav id="creator-nav" class="site-nav">
-            <ul class="site-nav__list">
-                {% for link in computedNavLinks %}
-                    <li>
-                        <a href="{{ link.href }}"
-                           class="site-nav__link {{ link.isActive ? 'is-active' }}">
-                            {% if link.icon %}
-                                <i class="{{ link.icon }}"></i>
-                            {% endif %}
-                            {{ link.label }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </nav>
-
-        {% if actionButtons is not empty %}
-            <div class="site-actions">
-                {% for button in actionButtons %}
-                    {% set variant = button.variant|default('ghost') %}
-                    {% set buttonClass = variant == 'primary' ? 'btn' : 'btn-ghost' %}
-                    <a class="{{ buttonClass }}"
-                       href="{{ button.href }}"
-                       {% if button.target is defined %}target="{{ button.target }}"{% endif %}>
-                        {% if button.icon %}
-                            <i class="{{ button.icon }}"></i>
-                        {% endif %}
-                        {{ button.label }}
+        {# Desktop Top Nav (Optional, usually side nav is primary for dashboard) #}
+        <div class="hidden md:flex items-center gap-4">
+            <a href="/creator/{{ session.username|default('public') }}" target="_blank" class="text-sm font-medium text-secondary-600 hover:text-primary-600 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary-50 transition-colors">
+                <i class="fas fa-external-link-alt text-xs"></i>
+                Voir ma page
+            </a>
+            
+            <div class="relative group">
+                <button class="flex items-center gap-2 text-sm font-medium text-secondary-700 hover:text-primary-700 focus:outline-none">
+                    <span class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
+                        {{ session.username|default('C')|slice(0,1)|upper }}
+                    </span>
+                    <span class="hidden sm:inline-block">{{ session.username|default('Créatrice') }}</span>
+                    <i class="fas fa-chevron-down text-xs text-secondary-400"></i>
+                </button>
+                
+                {# Dropdown #}
+                <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-secondary-100 hidden group-hover:block transition-all transform origin-top-right z-50">
+                     <a href="/dashboard/settings" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50 hover:text-primary-600">
+                        <i class="fas fa-cog w-4 mr-2"></i> Paramètres
                     </a>
-                {% endfor %}
+                    <div class="border-t border-secondary-100 my-1"></div>
+                    <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <i class="fas fa-sign-out-alt w-4 mr-2"></i> Déconnexion
+                    </a>
+                </div>
             </div>
-        {% endif %}
+        </div>
+        
+        {# Mobile Profile Icon #}
+         <div class="md:hidden">
+            <a href="/dashboard/settings" class="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
+                {{ session.username|default('C')|slice(0,1)|upper }}
+            </a>
+         </div>
     </div>
 </header>
+
+

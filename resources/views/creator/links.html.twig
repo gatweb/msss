@@ -1,164 +1,231 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<div class="card page-card links-page-card">
-    <div class="row">
-        <div class="col s12">
-            <h4>Gestion de mes liens</h4>
-        </div>
+{% block content %}
+<!-- Header -->
+<div class="mb-10 text-center relative z-10">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 mb-4 tracking-tight">
+        Mes <span class="text-primary-600">Liens</span>
+    </h1>
+    <p class="text-lg text-gray-600 max-w-2xl mx-auto font-light">
+        Partagez vos réseaux et contenus avec votre communauté.
+    </p>
+    <div class="mt-8">
+        <button onclick="prepareAddLink()" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+            <i class="fas fa-plus"></i>
+            Ajouter un lien
+        </button>
     </div>
-
-    <div class="row">
-        <div class="col s12 right-align">
-            <a class="btn waves-effect waves-light blue modal-trigger" href="#linkModal" onclick="prepareAddLink()">
-                <i class="fas fa-plus left"></i>Ajouter un lien
-            </a>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col s12">
-            <table class="striped highlight responsive-table links-table">
-                <thead>
-                    <tr>
-                        <th>Icône</th>
-                        <th>Titre</th>
-                        <th>URL</th>
-                        <th class="center-align">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if links is empty %}
-                        <tr>
-                            <td colspan="4" class="center-align">Vous n'avez ajouté aucun lien pour le moment.</td>
-                        </tr>
-                    {% else %}
-                        {% for link in links %}
-                            <tr>
-                                <td><i class="{{ link.icon|default('fas fa-link') }} link-table-icon"></i></td>
-                                <td>{{ link.title }}</td>
-                                <td><a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.url }}</a></td>
-                                <td class="center-align action-buttons">
-                                    <a class="btn-icon modal-trigger" href="#linkModal" onclick="editLink({{ link.id }}, '{{ link.title|escape('js') }}', '{{ link.url|escape('js') }}', '{{ link.icon|default('')|escape('js') }}', '{{ link.description|default('')|escape('js') }}')" title="Éditer">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a class="btn-icon btn-danger" href="#" onclick="deleteLink({{ link.id }})" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Modal d'ajout/édition de lien -->
-    <div id="linkModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Ajouter un lien</h2>
-                <button class="close-modal" onclick="closeLinkModal()">&times;</button>
-            </div>
-            <form id="linkForm" action="/dashboard/links/save" method="POST" class="link-form">
-                <input type="hidden" id="linkId" name="id">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                
-                <div class="form-group">
-                    <label for="title">Titre *</label>
-                    <input type="text" id="title" name="title" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="url">URL *</label>
-                    <input type="url" id="url" name="url" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="icon">Icône</label>
-                    <div class="icon-selector">
-                        <select id="icon" name="icon">
-                            <option value="fab fa-twitter">Twitter</option>
-                            <option value="fab fa-instagram">Instagram</option>
-                            <option value="fab fa-youtube">YouTube</option>
-                            <option value="fab fa-twitch">Twitch</option>
-                            <option value="fab fa-tiktok">TikTok</option>
-                            <option value="fab fa-discord">Discord</option>
-                            <option value="fas fa-globe">Site web</option>
-                            <option value="fas fa-link">Autre</option>
-                        </select>
-                        <i id="iconPreview" class="fab fa-twitter"></i>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="3"></textarea>
-                    <small>Optionnel - Une courte description du lien</small>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLinkModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    let currentLinkId = null;
-
-    function prepareAddLink() {
-        currentLinkId = null;
-        document.getElementById('modalTitle').innerText = 'Ajouter un lien';
-        document.getElementById('linkForm').reset(); 
-        document.getElementById('linkId').value = ''; 
-        const iconSelect = document.getElementById('icon');
-        iconSelect.value = 'fas fa-link'; 
-        updateIconPreview(); 
-    }
-
-    function editLink(id, title, url, icon, description) {
-        currentLinkId = id;
-        document.getElementById('modalTitle').innerText = 'Modifier le lien';
-        document.getElementById('linkId').value = id;
-        document.getElementById('title').value = title;
-        document.getElementById('url').value = url;
-        document.getElementById('icon').value = icon || 'fas fa-link';
-        document.getElementById('description').value = description || '';
-        updateIconPreview();
-    }
-
-    function closeLinkModal() {
-        const modalElement = document.getElementById('linkModal');
-        modalElement.style.display = 'none'; 
-        prepareAddLink(); 
-    }
-
-    function deleteLink(id) {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce lien ?')) {
-            const form = document.createElement('form');
-            form.method = 'POST'; 
-            form.action = `/dashboard/links/delete/${id}`; 
-            
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token'; 
-            csrfInput.value = '{{ csrf_token }}'; 
-            form.appendChild(csrfInput);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    document.getElementById('icon').addEventListener('change', updateIconPreview);
-
-    function updateIconPreview() {
-        const selectedIcon = document.getElementById('icon').value;
-        document.getElementById('iconPreview').className = selectedIcon + ' fa-fw'; 
-    }
-
-    updateIconPreview();
-
-    </script>
 </div>
+
+<!-- Links List -->
+<div class="relative group max-w-4xl mx-auto z-10">
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+    <div class="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden p-6">
+        
+        {% if links is empty %}
+            <div class="text-center py-10">
+                <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fas fa-link"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun lien</h3>
+                <p class="text-gray-500">Ajoutez des liens vers vos réseaux sociaux ou votre site web.</p>
+            </div>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 text-gray-500 uppercase text-xs font-bold tracking-wider border-b border-gray-100">
+                            <th class="px-6 py-4 w-16 text-center">Icône</th>
+                            <th class="px-6 py-4">Titre</th>
+                            <th class="px-6 py-4">URL</th>
+                            <th class="px-6 py-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for link in links %}
+                        <tr class="hover:bg-blue-50/50 transition-colors group">
+                            <!-- Icon -->
+                            <td class="px-6 py-4 text-center">
+                                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg mx-auto shadow-sm group-hover:scale-110 transition-transform">
+                                    <i class="{{ link.icon|default('fas fa-link') }}"></i>
+                                </div>
+                            </td>
+                            
+                            <!-- Title -->
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-900">{{ link.title }}</div>
+                                {% if link.description %}
+                                    <div class="text-xs text-gray-400 mt-0.5 line-clamp-1">{{ link.description }}</div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- URL -->
+                            <td class="px-6 py-4">
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
+                                    <i class="fas fa-external-link-alt text-[10px]"></i>
+                                    {{ link.url|slice(0, 40) }}{{ link.url|length > 40 ? '...' : '' }}
+                                </a>
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all" 
+                                            onclick="editLink({{ link.id }}, '{{ link.title|escape('js') }}', '{{ link.url|escape('js') }}', '{{ link.icon|default('')|escape('js') }}', '{{ link.description|default('')|escape('js') }}')" title="Éditer">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    
+                                    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" 
+                                            onclick="deleteLink({{ link.id }})" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div id="linkModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeLinkModal()"></div>
+    
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <!-- Modal Panel -->
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-gray-100">
+                
+                <!-- Header -->
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="text-lg font-bold leading-6 text-gray-900" id="modalTitle">Ajouter un lien</h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none" onclick="closeLinkModal()">
+                        <span class="sr-only">Fermer</span>
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form id="linkForm" action="/dashboard/links/save" method="POST">
+                    <div class="px-4 py-5 sm:p-6 space-y-5">
+                        <input type="hidden" id="linkId" name="id">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        
+                        <div>
+                            <label for="title" class="block text-sm font-semibold text-gray-700 mb-1">Titre *</label>
+                            <input type="text" id="title" name="title" required class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 bg-gray-50/50" placeholder="Ex: Mon Instagram">
+                        </div>
+
+                        <div>
+                            <label for="url" class="block text-sm font-semibold text-gray-700 mb-1">URL *</label>
+                            <input type="url" id="url" name="url" required class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 bg-gray-50/50" placeholder="https://instagram.com/monprofit">
+                        </div>
+
+                        <div>
+                            <label for="icon" class="block text-sm font-semibold text-gray-700 mb-1">Icône</label>
+                            <div class="flex gap-2">
+                                <select id="icon" name="icon" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 bg-gray-50/50">
+                                    <option value="fab fa-twitter">Twitter</option>
+                                    <option value="fab fa-instagram">Instagram</option>
+                                    <option value="fab fa-youtube">YouTube</option>
+                                    <option value="fab fa-twitch">Twitch</option>
+                                    <option value="fab fa-tiktok">TikTok</option>
+                                    <option value="fab fa-discord">Discord</option>
+                                    <option value="fas fa-globe">Site web</option>
+                                    <option value="fas fa-link">Autre</option>
+                                </select>
+                                <div class="w-10 h-10 flex-shrink-0 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200 text-gray-600">
+                                    <i id="iconPreview" class="fab fa-twitter"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                            <textarea id="description" name="description" rows="3" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-gray-50/50" placeholder="Courte description (optionnel)"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-100">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition-colors">
+                            Enregistrer
+                        </button>
+                        <button type="button" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors" onclick="closeLinkModal()">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLinkId = null;
+
+function prepareAddLink() {
+    currentLinkId = null;
+    document.getElementById('modalTitle').innerText = 'Ajouter un lien';
+    document.getElementById('linkForm').reset(); 
+    document.getElementById('linkId').value = ''; 
+    const iconSelect = document.getElementById('icon');
+    iconSelect.value = 'fas fa-link'; 
+    updateIconPreview(); 
+    document.getElementById('linkModal').classList.remove('hidden');
+}
+
+function editLink(id, title, url, icon, description) {
+    currentLinkId = id;
+    document.getElementById('modalTitle').innerText = 'Modifier le lien';
+    document.getElementById('linkId').value = id;
+    document.getElementById('title').value = title;
+    document.getElementById('url').value = url;
+    document.getElementById('icon').value = icon || 'fas fa-link';
+    document.getElementById('description').value = description || '';
+    updateIconPreview();
+    document.getElementById('linkModal').classList.remove('hidden');
+}
+
+function closeLinkModal() {
+    const modalElement = document.getElementById('linkModal');
+    modalElement.classList.add('hidden');
+}
+
+function deleteLink(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce lien ?')) {
+        const form = document.createElement('form');
+        form.method = 'POST'; 
+        form.action = `/dashboard/links/delete/${id}`; 
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token'; 
+        csrfInput.value = '{{ csrf_token }}'; 
+        form.appendChild(csrfInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+document.getElementById('icon').addEventListener('change', updateIconPreview);
+
+function updateIconPreview() {
+    const selectedIcon = document.getElementById('icon').value;
+    document.getElementById('iconPreview').className = selectedIcon + ' fa-fw'; 
+}
+
+// Close on escape
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeLinkModal();
+    }
+});
+
+updateIconPreview();
+</script>
+{% endblock %}

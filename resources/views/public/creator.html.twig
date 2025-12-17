@@ -123,6 +123,25 @@
 
             <!-- Right Column: Sidebar -->
             <div class="space-y-8">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-6">
+                    <h3 class="font-heading font-bold text-lg text-secondary-900 mb-4">Actions Rapides</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="selectAction('Cadeau')" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-secondary-200 hover:border-purple-500 hover:bg-purple-50 hover:text-purple-700 transition-all group">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <span class="text-sm font-bold">Cadeau</span>
+                        </button>
+                        <button onclick="selectAction('Autre', 'Message')" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-secondary-200 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-all group">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span class="text-sm font-bold">Message</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Stats Card -->
                 <div class="bg-white rounded-2xl shadow-sm border border-secondary-100 p-6">
                     <h3 class="font-heading font-bold text-lg text-secondary-900 mb-4">Statistiques</h3>
@@ -191,7 +210,7 @@
                                         <span class="bg-primary-100 text-primary-700 text-xs font-bold px-2 py-1 rounded-lg">{{ pack.price|number_format(0) }}€</span>
                                     </div>
                                     <p class="text-sm text-secondary-500 mb-3">{{ pack.description }}</p>
-                                    <button class="w-full py-2 rounded-lg border border-primary-600 text-primary-600 font-semibold text-sm hover:bg-primary-50 transition-colors">
+                                    <button onclick="selectPack('{{ pack.name|escape('js') }}', {{ pack.price }})" class="w-full py-2 rounded-lg border border-primary-600 text-primary-600 font-semibold text-sm hover:bg-primary-50 transition-colors">
                                         Commander
                                     </button>
                                 </div>
@@ -207,6 +226,30 @@
 <script>
     function setAmount(val) {
         document.getElementById('amount').value = val;
+    }
+
+    function selectPack(name, price) {
+        document.getElementById('amount').value = price;
+        document.getElementById('comment').value = "Commande du pack : " + name;
+        document.getElementById('donation_type').value = 'Autre'; // Default to Autre for packs to rely on comment
+        scrollToForm();
+    }
+
+    function selectAction(type, context = null) {
+        const select = document.getElementById('donation_type');
+        select.value = type;
+        if (context === 'Message') {
+             document.getElementById('comment').focus();
+        }
+        scrollToForm();
+    }
+
+    function scrollToForm() {
+        const formDiv = document.querySelector('form[action="/donations/add"]').closest('.bg-white');
+        formDiv.scrollIntoView({behavior: 'smooth', block: 'center'});
+        // Trigger generic highlight effect
+        formDiv.classList.add('ring-4', 'ring-primary-200');
+        setTimeout(() => formDiv.classList.remove('ring-4', 'ring-primary-200'), 1000);
     }
 </script>
 {% endblock %}

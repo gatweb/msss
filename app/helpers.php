@@ -95,11 +95,9 @@ if (!function_exists('url')) {
 /**
  * Génère une URL d'asset
  */
-if (!function_exists('asset')) {
     function asset($path) {
-        return url('assets/' . ltrim($path, '/'));
+        return '/assets/' . ltrim($path, '/');
     }
-}
 
 /**
  * Redirection vers une URL

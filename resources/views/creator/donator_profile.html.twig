@@ -1,199 +1,218 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<div class="donator-profile-container">
-    <a href="/dashboard/donators" class="btn btn-light mb-3">&larr; Retour à la liste</a>
-    <div class="section-title-bar">
-        <div>
-            <h2>
-                <span class="donator-avatar">
-                    {{ donator.donor_name|first|upper }}
-                </span>
-                {{ donator.donor_name }} <small>({{ donator.donor_email }})</small>
+{% block content %}
+<!-- Back Button -->
+<div class="mb-6">
+    <a href="/dashboard/donators" class="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors font-medium">
+        <i class="fas fa-arrow-left"></i> Retour à la liste
+    </a>
+</div>
+
+<!-- Profile Header -->
+<div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-8 mb-8 relative overflow-hidden group">
+    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+    <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition duration-700"></div>
+
+    <div class="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
+        <!-- Avatar -->
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 flex items-center justify-center text-3xl font-bold shadow-inner">
+            {{ donator.donor_name|first|upper }}
+        </div>
+        
+        <!-- Info -->
+        <div class="flex-grow">
+            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3 flex-wrap">
+                {{ donator.donor_name }}
+                
                 {% set status_labels = {
-                    'client': ['Client', 'badge-success'],
-                    'indesirable': ['Indésirable', 'badge-danger'],
-                    'attente': ['En attente', 'badge-warning'],
-                    'prospect': ['Prospect', 'badge-info'],
-                    'ancien': ['Ancien', 'badge-secondary'],
+                    'client': ['Client', 'bg-emerald-100 text-emerald-800 border-emerald-200'],
+                    'indesirable': ['Indésirable', 'bg-red-100 text-red-800 border-red-200'],
+                    'attente': ['En attente', 'bg-orange-100 text-orange-800 border-orange-200'],
+                    'prospect': ['Prospect', 'bg-blue-100 text-blue-800 border-blue-200'],
+                    'ancien': ['Ancien', 'bg-gray-100 text-gray-800 border-gray-200'],
                 } %}
                 {% set status = notes.crm_status|default('prospect') %}
                 {% if status_labels[status] is defined %}
-                    <span class="badge {{ status_labels[status][1] }} ml-2">{{ status_labels[status][0] }}</span>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium border {{ status_labels[status][1] }} shadow-sm">
+                        {{ status_labels[status][0] }}
+                    </span>
                 {% endif %}
-            </h2>
-            <div class="donator-meta">
-                <span>Total des dons : <strong>{{ donator.total_amount|number_format(2, ',', ' ') }} €</strong></span>
-                <span>Dernier don : <strong>{{ donator.last_donation ? donator.last_donation|date('d/m/Y H:i') : '-' }}</strong></span>
-            </div>
+            </h1>
+            <p class="text-gray-500 font-medium">{{ donator.donor_email }}</p>
         </div>
-    </div>
 
-    <form method="post" action="#" class="donator-notes-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="crm_phone">Téléphone</label>
-                <input type="text" class="form-control" id="crm_phone" name="crm_phone" value="{{ notes.crm_phone|default('') }}" placeholder="Numéro de téléphone">
+        <!-- Stats -->
+        <div class="flex gap-6 bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+            <div class="text-center">
+                <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Total Dons</p>
+                <p class="text-xl font-bold text-gray-900">{{ donator.total_amount|number_format(2, ',', ' ') }} €</p>
             </div>
-            <div class="form-group col-md-6">
-                <label for="crm_status">Statut du contact</label>
-                <select class="form-control form-control-sm" id="crm_status" name="crm_status">
-                    <option value="prospect" {{ (notes.crm_status|default('')) == 'prospect' ? 'selected' : '' }}>Prospect</option>
-                    <option value="client" {{ (notes.crm_status|default('')) == 'client' ? 'selected' : '' }}>Client</option>
-                    <option value="ancien" {{ (notes.crm_status|default('')) == 'ancien' ? 'selected' : '' }}>Ancien</option>
-                    <option value="attente" {{ (notes.crm_status|default('')) == 'attente' ? 'selected' : '' }}>En attente</option>
-                    <option value="indesirable" {{ (notes.crm_status|default('')) == 'indesirable' ? 'selected' : '' }}>Indésirable</option>
-                </select>
+            <div class="w-px bg-gray-200"></div>
+            <div class="text-center">
+                <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Dernier Don</p>
+                <p class="text-xl font-bold text-gray-900">{{ donator.last_donation ? donator.last_donation|date('d/m/Y') : '-' }}</p>
             </div>
         </div>
-        <div class="form-row">
-            <div class="form-group col-md-12">
-                <label>Préférences personnelles :</label><br>
-                <label class="checkbox-inline mr-3">
-                    <input type="checkbox" name="pref_gift" {{ notes.pref_gift is not empty ? 'checked' : '' }}> Aime recevoir des cadeaux
-                </label>
-                <label class="checkbox-inline mr-3">
-                    <input type="checkbox" name="pref_anonymous" {{ notes.pref_anonymous is not empty ? 'checked' : '' }}> Préfère l'anonymat
-                </label>
-                <label class="checkbox-inline mr-3">
-                    <input type="checkbox" name="pref_birthday" {{ notes.pref_birthday is not empty ? 'checked' : '' }}> Anniversaire à fêter
-                </label>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="crm_source">Source</label>
-                <input type="text" class="form-control" id="crm_source" name="crm_source" value="{{ notes.crm_source|default('') }}" placeholder="Ex: Réseaux sociaux, bouche-à-oreille...">
-            </div>
-            <div class="form-group col-md-6">
-                <label for="crm_first_contact">Date de premier contact</label>
-                <input type="date" class="form-control" id="crm_first_contact" name="crm_first_contact" value="{{ notes.crm_first_contact|default('') }}">
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label for="crm_birthday">Anniversaire</label>
-                <input type="date" class="form-control" id="crm_birthday" name="crm_birthday" value="{{ notes.crm_birthday ? notes.crm_birthday|date('Y-m-d') : '' }}">
-            </div>
-        </div>
-        <div class="form-group mt-3">
-            <label>Suivi&nbsp;:</label><br>
-            <label class="checkbox-inline mr-3">
-                <input type="checkbox" name="merci_envoye" {{ notes.merci_envoye is not empty ? 'checked' : '' }}> Merci envoyé
-            </label>
-            <label class="checkbox-inline mr-3">
-                <input type="checkbox" name="cadeau_envoye" {{ notes.cadeau_envoye is not empty ? 'checked' : '' }}> Cadeau expédié
-            </label>
-            <label class="checkbox-inline mr-3">
-                <input type="checkbox" name="vip" {{ notes.vip is not empty ? 'checked' : '' }}> VIP
-            </label>
-            <label class="checkbox-inline mr-3">
-                <input type="checkbox" name="fan_fidele" id="fan_fidele" {{ notes.fan_fidele is not empty ? 'checked' : '' }}> <span style="color:#e67e22;">Fan fidèle ⭐</span>
-            </label>
-        </div>
-        <div class="form-group">
-            <label for="commentaire">Commentaire interne :</label>
-            <textarea class="form-control" id="commentaire" name="commentaire" rows="3" placeholder="Ajoutez une note...">{{ notes.commentaire|default('') }}</textarea>
-        </div>
-        <button type="submit" class="btn btn-success">Enregistrer le suivi</button>
-    </form>
-    <hr>
-
-    <div class="mt-4">
-        <h4>Historique des dons</h4>
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Montant</th>
-                    <th>Message</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for don in donations %}
-                <tr>
-                    <td>{{ don.created_at ? don.created_at|date('d/m/Y H:i') : '-' }}</td>
-                    <td>{{ don.amount|number_format(2, ',', ' ') }} €</td>
-                    <td>{{ don.message|default('') }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-3">
-        <a href="mailto:{{ donator.donor_email }}" class="btn btn-outline-primary">Envoyer un message</a>
     </div>
 </div>
 
-<style>
-.donator-profile-container {
-    max-width: 600px;
-    margin: 1.2rem auto;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    padding: 1.2rem 1.2rem;
-}
-.section-title-bar {
-    border-bottom: 1px solid #eee;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-}
-.donator-avatar {
-    background: #e9ecef;
-    color: #5c636a;
-    border-radius: 50%;
-    width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.4rem;
-    margin-right: 12px;
-}
-.donator-summary .badge {
-    margin-right: 8px;
-    font-size: 1rem;
-}
-.donator-notes-form {
-    margin-top: 0.7rem;
-    margin-bottom: 1rem;
-}
-.donator-notes-form .form-control, .donator-notes-form .form-control-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.95rem;
-    height: 2rem;
-}
-.donator-notes-form .form-group {
-    margin-bottom: 0.5rem;
-}
-.donator-notes-form label {
-    font-size: 0.98rem;
-    margin-bottom: 0.15rem;
-}
-.donator-notes-form .checkbox-inline {
-    margin-bottom: 0.2rem;
-}
-.donator-notes-form textarea.form-control {
-    min-height: 2.2rem;
-    font-size: 0.97rem;
-}
-.badge {
-    display: inline-block;
-    padding: 0.25em 0.7em;
-    font-size: 0.93em;
-    font-weight: 500;
-    border-radius: 0.7em;
-    vertical-align: middle;
-}
-.badge-success { background: #27ae60; color: #fff; }
-.badge-danger { background: #e74c3c; color: #fff; }
-.badge-warning { background: #f39c12; color: #fff; }
-.badge-info { background: #3498db; color: #fff; }
-.badge-secondary { background: #95a5a6; color: #fff; }
-.fan-counter {
-    color: #e67e22;
-    font-weight: bold;
-    font-size: 0.97em;
-}
-</style>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- CRM Form -->
+    <div class="lg:col-span-2">
+        <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-8 h-full">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <i class="fas fa-user-edit text-blue-500"></i> Suivi & Notes
+            </h2>
+
+            <form method="post" action="#" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="crm_phone" class="block text-sm font-semibold text-gray-700 mb-1">Téléphone</label>
+                        <div class="relative">
+                            <i class="fas fa-phone absolute left-3 top-3 text-gray-400 text-sm"></i>
+                            <input type="text" id="crm_phone" name="crm_phone" value="{{ notes.crm_phone|default('') }}" class="block w-full pl-9 rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50/50 py-2.5 sm:text-sm" placeholder="Numéro de téléphone">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="crm_status" class="block text-sm font-semibold text-gray-700 mb-1">Statut</label>
+                         <div class="relative">
+                            <i class="fas fa-tag absolute left-3 top-3 text-gray-400 text-sm"></i>
+                            <select id="crm_status" name="crm_status" class="block w-full pl-9 rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50/50 py-2.5 sm:text-sm appearance-none">
+                                <option value="prospect" {{ (notes.crm_status|default('')) == 'prospect' ? 'selected' : '' }}>Prospect</option>
+                                <option value="client" {{ (notes.crm_status|default('')) == 'client' ? 'selected' : '' }}>Client</option>
+                                <option value="ancien" {{ (notes.crm_status|default('')) == 'ancien' ? 'selected' : '' }}>Ancien</option>
+                                <option value="attente" {{ (notes.crm_status|default('')) == 'attente' ? 'selected' : '' }}>En attente</option>
+                                <option value="indesirable" {{ (notes.crm_status|default('')) == 'indesirable' ? 'selected' : '' }}>Indésirable</option>
+                            </select>
+                             <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 text-sm pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Préférences</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="pref_gift" {{ notes.pref_gift is not empty ? 'checked' : '' }} class="rounded text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">🎁 Aime les cadeaux</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="pref_anonymous" {{ notes.pref_anonymous is not empty ? 'checked' : '' }} class="rounded text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">🕶️ Préfère l'anonymat</span>
+                        </label>
+                         <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="pref_birthday" {{ notes.pref_birthday is not empty ? 'checked' : '' }} class="rounded text-blue-600 focus:ring-blue-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">🎂 Anniversaire à fêter</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="crm_source" class="block text-sm font-semibold text-gray-700 mb-1">Source</label>
+                        <input type="text" id="crm_source" name="crm_source" value="{{ notes.crm_source|default('') }}" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50/50 py-2.5 sm:text-sm" placeholder="Ex: Réseaux sociaux">
+                    </div>
+                    <div>
+                        <label for="crm_birthday" class="block text-sm font-semibold text-gray-700 mb-1">Anniversaire</label>
+                        <input type="date" id="crm_birthday" name="crm_birthday" value="{{ notes.crm_birthday ? notes.crm_birthday|date('Y-m-d') : '' }}" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50/50 py-2.5 sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Suivi</label>
+                    <div class="flex flex-wrap gap-4">
+                         <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="merci_envoye" {{ notes.merci_envoye is not empty ? 'checked' : '' }} class="rounded text-green-600 focus:ring-green-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-green-600 transition-colors">✅ Merci envoyé</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="cadeau_envoye" {{ notes.cadeau_envoye is not empty ? 'checked' : '' }} class="rounded text-green-600 focus:ring-green-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-green-600 transition-colors">📦 Cadeau expédié</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="vip" {{ notes.vip is not empty ? 'checked' : '' }} class="rounded text-purple-600 focus:ring-purple-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm text-gray-600 group-hover:text-purple-600 transition-colors">👑 VIP</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" name="fan_fidele" id="fan_fidele" {{ notes.fan_fidele is not empty ? 'checked' : '' }} class="rounded text-yellow-500 focus:ring-yellow-500 border-gray-300 w-4 h-4">
+                            <span class="text-sm font-bold text-yellow-600 group-hover:text-yellow-700 transition-colors">⭐ Fan fidèle</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="commentaire" class="block text-sm font-semibold text-gray-700 mb-1">Commentaire interne</label>
+                    <textarea id="commentaire" name="commentaire" rows="4" class="block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50/50 sm:text-sm" placeholder="Ajoutez une note privée...">{{ notes.commentaire|default('') }}</textarea>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- History Column -->
+    <div class="lg:col-span-1 space-y-8">
+        <!-- Actions -->
+        <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Actions Rapides</h3>
+            <div class="space-y-3">
+                 <a href="mailto:{{ donator.donor_email }}" class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all font-medium shadow-sm">
+                    <i class="fas fa-envelope"></i> Envoyer un email
+                </a>
+                <button class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-purple-600 hover:border-purple-300 hover:bg-purple-50 transition-all font-medium shadow-sm">
+                    <i class="fas fa-gift"></i> Envoyer un cadeau
+                </button>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-history text-blue-500"></i> Historique
+            </h3>
+            
+            {% if donations is empty %}
+                <p class="text-gray-500 text-sm italic">Aucun don enregistré.</p>
+            {% else %}
+                <div class="flow-root">
+                    <ul role="list" class="-mb-8">
+                        {% for don in donations %}
+                        <li>
+                            <div class="relative pb-8">
+                                {% if not loop.last %}
+                                    <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                {% endif %}
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center ring-8 ring-white">
+                                            <i class="fas fa-euro-sign text-green-600 text-xs"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900">{{ don.amount|number_format(2, ',', ' ') }} €</p>
+                                            {% if don.message %}
+                                                <p class="text-xs text-gray-500 mt-1 italic">"{{ don.message }}"</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="whitespace-nowrap text-right text-xs text-gray-500">
+                                            <time datetime="{{ don.created_at }}">{{ don.created_at ? don.created_at|date('d/m/Y') : '' }}</time>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

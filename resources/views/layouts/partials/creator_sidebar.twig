@@ -1,58 +1,59 @@
-{% set sidebarTitle = sidebarTitle|default('Navigation') %}
-{% set defaultSidebarLinks = [
-    {'href': '/dashboard', 'match': '/dashboard', 'label': 'Tableau de bord', 'icon': 'bi bi-grid-1x2-fill'},
-    {'href': '/dashboard/stats', 'match': '/dashboard/stats', 'label': 'Statistiques', 'icon': 'bi bi-graph-up'},
-    {'href': '/dashboard/links', 'match': '/dashboard/links', 'label': 'Mes liens', 'icon': 'bi bi-link-45deg'},
-    {'href': '/dashboard/ai-tools', 'match': '/dashboard/ai-tools', 'label': 'Outils IA', 'icon': 'bi bi-stars'},
-    {'href': '/dashboard/settings', 'match': '/dashboard/settings', 'label': 'Paramètres', 'icon': 'bi bi-gear-fill'}
+{% set sidebarLinks = [
+    {'href': '/dashboard', 'match': '/dashboard', 'label': 'Tableau de bord', 'icon': 'fas fa-chart-line', 'exact': true},
+    {'href': '/dashboard/donators', 'match': '/dashboard/donators', 'label': 'Donateurs', 'icon': 'fas fa-users'},
+    {'href': '/dashboard/donations', 'match': '/dashboard/donations', 'label': 'Dons', 'icon': 'fas fa-hand-holding-heart'},
+    {'href': '/profile/packs', 'match': '/profile/packs', 'label': 'Mes Packs', 'icon': 'fas fa-box-open'},
+    {'href': '/dashboard/links', 'match': '/dashboard/links', 'label': 'Mes liens', 'icon': 'fas fa-link'},
+    {'href': '/dashboard/ai-tools', 'match': '/dashboard/ai-tools', 'label': 'Outils IA', 'icon': 'fas fa-wand-magic-sparkles'},
 ] %}
-{% set sidebarLinks = sidebarLinks|default(defaultSidebarLinks) %}
-{% set computedSidebarLinks = [] %}
-{% for link in sidebarLinks %}
-    {% set href = link.href|default('#') %}
-    {% set match = link.match|default(href) %}
-    {% set linkIsActive = link.isActive is defined ? link.isActive : is_active_path(match) %}
-    {% set computedSidebarLinks = computedSidebarLinks|merge([link|merge({'href': href, 'match': match, 'isActive': linkIsActive})]) %}
-{% endfor %}
-{% set creatorUsername = creator.username|default(creatorUsername|default(null)) %}
-{% if creatorUsername %}
-    {% set fallbackPublicUrl = '/creator/' ~ creatorUsername|url_encode %}
-{% else %}
-    {% set fallbackPublicUrl = '/creator/public' %}
-{% endif %}
-{% set publicProfileUrl = publicProfileUrl|default(fallbackPublicUrl) %}
-{% set publicProfileLabel = publicProfileLabel|default('Voir page publique') %}
-{% set publicProfileIcon = publicProfileIcon|default('bi bi-eye-fill') %}
-{% set publicProfileTarget = publicProfileTarget|default('_blank') %}
-{% set logoutUrl = logoutUrl|default('/logout') %}
-{% set logoutLabel = logoutLabel|default('Déconnexion') %}
-{% set logoutIcon = logoutIcon|default('bi bi-box-arrow-right') %}
-<nav class="creator-sidebar">
-    {% if sidebarTitle %}
-        <h5>{{ sidebarTitle }}</h5>
-    {% endif %}
-    <ul class="nav-list">
-        {% for link in computedSidebarLinks %}
-            <li>
-                <a class="nav-item {{ link.isActive ? 'active' }}" href="{{ link.href }}">
-                    {% if link.icon %}
-                        <i class="{{ link.icon }}"></i>
-                    {% endif %}
+
+<aside id="creator-sidebar" class="fixed inset-y-0 left-0 z-20 w-64 bg-white border-r border-secondary-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out pt-16 lg:pt-0">
+    <div class="h-full flex flex-col pt-[50px] pb-4 overflow-y-auto">
+        {# Navigation Links #}
+        <nav class="mt-[100px] px-3 space-y-1 flex-1">
+            {% for link in sidebarLinks %}
+                {% set isActive = link.exact is defined and link.exact ? is_active_path(link.match, true) : is_active_path(link.match) %}
+                
+                <a href="{{ link.href }}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ isActive ? 'bg-primary-50 text-primary-700' : 'text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900' }}">
+                    <i class="{{ link.icon }} w-6 text-center text-lg {{ isActive ? 'text-primary-600' : 'text-secondary-400 group-hover:text-secondary-500' }} mr-3"></i>
                     {{ link.label }}
                 </a>
-            </li>
-        {% endfor %}
-        <li>
-            <a class="nav-item" href="{{ publicProfileUrl }}" target="{{ publicProfileTarget }}">
-                <i class="{{ publicProfileIcon }}"></i>
-                {{ publicProfileLabel }}
+            {% endfor %}
+
+             <div class="my-4 border-t border-secondary-100"></div>
+
+             <a href="/dashboard/settings" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors {{ is_active_path('/dashboard/settings') ? 'bg-primary-50 text-primary-700' : 'text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900' }}">
+                <i class="fas fa-cog w-6 text-center text-lg text-secondary-400 group-hover:text-secondary-500 mr-3"></i>
+                Paramètres
             </a>
-        </li>
-    </ul>
-    <div class="sidebar-footer">
-        <a class="nav-item" href="{{ logoutUrl }}">
-            <i class="{{ logoutIcon }}"></i>
-            {{ logoutLabel }}
-        </a>
+        </nav>
+
+        {# Sidebar Footer #}
+        <div class="p-4 border-t border-secondary-200">
+            <a href="/logout" class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                <i class="fas fa-sign-out-alt w-6 text-center text-lg mr-3"></i>
+                Déconnexion
+            </a>
+        </div>
     </div>
-</nav>
+</aside>
+
+{# Mobile Overlay #}
+<div id="sidebar-overlay" class="fixed inset-0 bg-secondary-900 bg-opacity-50 z-10 hidden lg:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
+
+<script>
+    const sidebar = document.getElementById('creator-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const trigger = document.getElementById('mobile-menu-trigger');
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    }
+
+    if (trigger) {
+        trigger.addEventListener('click', toggleSidebar);
+    }
+</script>
+
+

@@ -393,21 +393,35 @@ class AiToolsController extends BaseController
 
         $responseData = json_decode($response, true);
 
-        // Vérification si le décodage JSON a fonctionné et si la structure attendue est présente
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($responseData['choices'][0]['message']['content'])) {
-            error_log("Erreur de décodage JSON ou structure de réponse invalide. Erreur JSON: " . json_last_error_msg());
-            error_log("Réponse reçue qui a causé l'erreur: " . $response);
-            throw new \Exception("Impossible d'extraire le contenu de la réponse de l'API. Détail: " . json_last_error_msg());
+        // Vérification si le décodage JSON a fonctionné
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log("Erreur de décodage JSON. Erreur: " . json_last_error_msg());
+            error_log("Réponse reçue: " . $response);
+            throw new \Exception("Réponse API invalide (JSON malformé).");
         }
 
-        $apiContent = $responseData['choices'][0]['message']['content'] ?? null;
-
-        if ($apiContent === null) {
-             // Essayer de récupérer un message d'erreur plus précis si possible
-             $errorDetail = $responseData['error']['message'] ?? 'An unexpected error occurred with the AI service.';
-             error_log("Réponse API invalide ou contenu manquant. Réponse brute: " . $response);
-            throw new \Exception("AI service error: " . $errorDetail);
+        // Vérifier si l'API a renvoyé une erreur explicite
+        if (isset($responseData['error'])) {
+            $errorMessage = $responseData['error']['message'] ?? 'Erreur inconnue de l\'API IA.';
+            error_log("Erreur renvoyée par l'API Mistral: " . $errorMessage);
+            throw new \Exception("Erreur API IA: " . $errorMessage);
         }
+
+        // Vérification de la structure de réponse
+        if (!isset($responseData['choices'][0]['message']['content'])) {
+            error_log("ERREUR API: Structure de réponse inattendue.");
+            error_log("API Response Dump: " . print_r($responseData, true)); // Dump complet
+            
+            // Tentative de récupération d'erreur alternative
+            if (isset($responseData['message'])) {
+                 error_log("Message d'erreur détecté à la racine: " . $responseData['message']);
+                 throw new \Exception("Erreur API: " . $responseData['message']);
+            }
+            
+            throw new \Exception("Format de réponse inattendu de l'IA (voir logs pour le dump).");
+        }
+
+        $apiContent = $responseData['choices'][0]['message']['content'];
 
         return $apiContent;
     }
@@ -419,7 +433,11 @@ class AiToolsController extends BaseController
         }
 
         if (!defined('BASE_PATH')) {
-            throw new \RuntimeException('BASE_PATH non défini, impossible de charger la configuration IA.');
+             if (defined('ROOT_PATH')) {
+                define('BASE_PATH', ROOT_PATH);
+             } else {
+                 define('BASE_PATH', dirname(__DIR__, 2)); // Fallback
+             }
         }
 
         $configPath = BASE_PATH . '/ia/config.php';

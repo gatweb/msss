@@ -1,3 +1,6 @@
+{% extends 'layouts/creator_dashboard.twig' %}
+
+{% block content %}
 <div class="container mt-4">
     <h1 class="mb-4">Modifier le pack</h1>
     <form action="/profile/packs/edit/{{ pack.id }}" method="post" class="bg-white p-4 rounded shadow-sm" style="max-width:600px;margin:auto;">
@@ -31,3 +34,4 @@
 <style>
 .form-label { font-weight: 500; }
 </style>
+{% endblock %}

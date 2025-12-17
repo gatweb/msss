@@ -71,15 +71,30 @@ class DonationsController extends BaseController {
     }
 
     public function index() {
-        $donations = $this->donationRepo->getAllDonations();
-        $donationData = $this->donationRepo->getDonationGoalAndTotal();
+        $creatorId = $this->getCurrentUserId();
+        if (!$creatorId) {
+            $this->redirect('/login');
+            return;
+        }
+
+        $donations = $this->donationRepo->getDonationsByCreator($creatorId);
+        $totalDonations = $this->donationRepo->getTotalAmount($creatorId);
+        $creator = $this->creatorRepository->findById($creatorId);
+        $donationGoal = $creator['donation_goal'] ?? 0;
         
-        $this->render('donations/index.html.twig', [
+        $stats = [
+             'total_amount' => $totalDonations,
+             'unique_donors' => $this->donationRepo->getUniqueDonorsCount($creatorId),
+             'average_donation' => $this->donationRepo->getAverageDonation($creatorId),
+             'trend' => 0 // A calculer si nécessaire
+        ];
+
+        $this->render('creator/donations.html.twig', [
             'donations' => $donations,
-            'donation_goal' => $donationData['goal'],
-            'total_donations' => $donationData['total'],
-            'progress_percentage' => ($donationData['goal'] > 0) ? 
-                                   min(100, ($donationData['total'] / $donationData['goal']) * 100) : 0,
+            'stats' => $stats,
+            'donation_goal' => $donationGoal,
+            'total_donations' => $totalDonations,
+            'progress_percentage' => ($donationGoal > 0) ? min(100, ($totalDonations / $donationGoal) * 100) : 0,
             'valid_donation_types' => ['PayPal', 'Photo', 'Cadeau', 'Autre']
         ]);
     }

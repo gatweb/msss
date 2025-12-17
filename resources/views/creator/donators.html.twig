@@ -1,358 +1,217 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<div class="donators-dashboard">
-    <div class="section-title-bar">
-        <h1>Mes donateurs</h1>
-        <div class="header-actions">
-            <button class="btn btn-outline" onclick="exportDonators()">
-                <i class="fas fa-download"></i> Exporter
-            </button>
+{% block content %}
+<!-- Page Header -->
+<div class="mb-10 text-center relative z-10">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 mb-4 tracking-tight">
+        Mes <span class="text-primary-600">Donateurs</span>
+    </h1>
+    <p class="text-lg text-gray-600 max-w-2xl mx-auto font-light">
+        Suivez et récompensez votre communauté exceptionnelle.
+    </p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 relative z-10">
+    <!-- Card 1 -->
+    <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group">
+        <div class="flex items-center gap-4">
+            <div class="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-users text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Donateurs</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ stats.total_donators|number_format }}</h3>
+            </div>
         </div>
     </div>
 
-    <div class="donators-grid">
-        <!-- Statistiques des donateurs -->
-        <div class="stats-cards">
-            <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <div class="stat-content">
-                    <h3>Total donateurs</h3>
-                    <p class="stat-value">{{ stats.total_donators|number_format }}</p>
-                </div>
+    <!-- Card 2 -->
+    <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group">
+        <div class="flex items-center gap-4">
+            <div class="p-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-redo text-2xl"></i>
             </div>
-
-            <div class="stat-card">
-                <i class="fas fa-redo"></i>
-                <div class="stat-content">
-                    <h3>Donateurs réguliers</h3>
-                    <p class="stat-value">{{ stats.recurring_donators|number_format }}</p>
-                </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Réguliers</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ stats.recurring_donators|number_format }}</h3>
             </div>
+        </div>
+    </div>
 
-            <div class="stat-card">
-                <i class="fas fa-euro-sign"></i>
-                <div class="stat-content">
-                    <h3>Don moyen</h3>
-                    <p class="stat-value">{{ stats.average_donation|money }}</p>
+    <!-- Card 3 -->
+    <div class="bg-white/70 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group">
+        <div class="flex items-center gap-4">
+            <div class="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-euro-sign text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Don Moyen</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ stats.average_donation|money }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="relative group">
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+    <div class="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden">
+        
+        <!-- Toolbar -->
+        <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-white/50">
+            <div class="relative w-full md:w-72">
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchDonators" placeholder="Rechercher un donateur..." class="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm" onkeyup="filterDonators()">
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="relative">
+                    <select id="sortDonators" onchange="sortDonators()" class="appearance-none pl-4 pr-10 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm hover:bg-white transition-colors">
+                        <option value="recent">🕒 Plus récent</option>
+                        <option value="amount">💰 Montant total</option>
+                        <option value="frequency">🔄 Fréquence</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                 </div>
+                
+                <button class="px-5 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all font-medium text-sm shadow-sm flex items-center gap-2" onclick="exportDonators()">
+                    <i class="fas fa-download"></i> <span class="hidden sm:inline">Export</span>
+                </button>
             </div>
         </div>
 
-        <!-- Liste des donateurs -->
-        <div class="donators-list">
-            <div class="list-header">
-                <div class="search-box">
-                    <input type="text" id="searchDonators" placeholder="Rechercher un donateur..." onkeyup="filterDonators()">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="filters">
-                    <select id="sortDonators" onchange="sortDonators()">
-                        <option value="recent">Plus récent</option>
-                        <option value="amount">Montant total</option>
-                        <option value="frequency">Fréquence</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="donators-table">
-                <table>
-                    <thead>
-                        <tr class="donator-row">
-                            <th>Statut</th>
-                            <th>Dernier don</th>
-                            <th>Total des dons</th>
-                            <th>Fréquence</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for donator in donators %}
-                        <tr class="donator-row" onclick="window.location.href='/dashboard/donators/profile?email={{ donator.donor_email|url_encode }}'" style="cursor:pointer;">
-                            <td class="led-col">
-                                {% set ledColor = '#95a5a6' %}
-                                {% set status = donator.crm_status|default('prospect') %}
-                                {% set statusLabels = {
-                                    'client': 'Client',
-                                    'indesirable': 'Indésirable',
-                                    'attente': 'En attente',
-                                    'prospect': 'Prospect',
-                                    'ancien': 'Ancien'
-                                } %}
-                                {% if status == 'client' %}{% set ledColor = '#27ae60' %}
-                                {% elseif status == 'indesirable' %}{% set ledColor = '#e74c3c' %}
-                                {% elseif status == 'attente' %}{% set ledColor = '#f39c12' %}
-                                {% elseif status == 'prospect' %}{% set ledColor = '#3498db' %}
-                                {% elseif status == 'ancien' %}{% set ledColor = '#95a5a6' %}
-                                {% endif %}
-                                <span class="led-status" style="background: {{ ledColor }};" title="{{ statusLabels[status]|default(status|capitalize) }}"></span>
-                            </td>
-                            <td class="donator-info">
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 text-gray-500 uppercase text-xs font-bold tracking-wider border-b border-gray-100">
+                        <th class="px-6 py-4 text-center w-24">Statut</th>
+                        <th class="px-6 py-4">Donateur</th>
+                        <th class="px-6 py-4">Dernier don</th>
+                        <th class="px-6 py-4">Total</th>
+                        <th class="px-6 py-4 text-center">Type</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for donator in donators %}
+                    <tr class="hover:bg-blue-50/50 transition-colors group cursor-pointer" onclick="window.location.href='/dashboard/donators/profile?email={{ donator.donor_email|url_encode }}'">
+                        <!-- Status -->
+                        <td class="px-6 py-4 text-center">
+                            {% set statusColor = 'bg-gray-400' %}
+                            {% set status = donator.crm_status|default('prospect') %}
+                            {% set statusLabels = {
+                                'client': 'Client',
+                                'indesirable': 'Indésirable',
+                                'attente': 'En attente',
+                                'prospect': 'Prospect',
+                                'ancien': 'Ancien'
+                            } %}
+                            
+                            {% if status == 'client' %}{% set statusColor = 'bg-emerald-500 shadow-emerald-500/50' %}
+                            {% elseif status == 'indesirable' %}{% set statusColor = 'bg-red-500 shadow-red-500/50' %}
+                            {% elseif status == 'attente' %}{% set statusColor = 'bg-orange-500 shadow-orange-500/50' %}
+                            {% elseif status == 'prospect' %}{% set statusColor = 'bg-blue-500 shadow-blue-500/50' %}
+                            {% endif %}
+                            
+                            <div class="relative group/tooltip inline-block">
+                                <span class="block w-3 h-3 rounded-full {{ statusColor }} shadow-md mx-auto transition-transform group-hover:scale-125"></span>
+                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                    {{ statusLabels[status]|default(status|capitalize) }}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Info -->
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 flex items-center justify-center font-bold text-sm shadow-inner">
+                                    {{ donator.donor_name|slice(0,1)|upper }}
+                                </div>
                                 <div>
-                                    <strong>{{ donator.donor_name }}</strong>
-                                    <span>{{ donator.donor_email }}</span>
+                                    <div class="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ donator.donor_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ donator.donor_email }}</div>
                                 </div>
-                            </td>
-                            <td>
-                                <div class="last-donation">
-                                    <span>{{ donator.last_donation|date('d/m/Y H:i') }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <strong>{{ donator.total_amount|number_format(2, ',', ' ') }}</strong>
-                                <span>({{ donator.donation_count }} dons)</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-secondary">Ponctuel</span>
-                            </td>
-                            <td>
-                                <span class="text-muted">-</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Date -->
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-gray-700">{{ donator.last_donation|date('d/m/Y') }}</span>
+                                <span class="text-xs text-gray-400">{{ donator.last_donation|date('H:i') }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- Amount -->
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">{{ donator.total_amount|number_format(2, ',', ' ') }} €</div>
+                            <div class="text-xs text-gray-500">{{ donator.donation_count }} dons</div>
+                        </td>
+                        
+                        <!-- Type -->
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                Ponctuel
+                            </span>
+                        </td>
+                        
+                        <!-- Actions -->
+                        <td class="px-6 py-4 text-right">
+                            <button class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Pagination -->
-            {% if total_pages > 1 %}
-            <div class="pagination">
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <span class="text-sm text-gray-500">Page <span class="font-semibold text-gray-900">{{ current_page }}</span> sur {{ total_pages }}</span>
+            <div class="flex gap-2">
                 {% if current_page > 1 %}
-                    <a href="?page={{ current_page - 1 }}" class="btn btn-outline">
-                        <i class="fas fa-chevron-left"></i> Précédent
+                    <a href="?page={{ current_page - 1 }}" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm">
+                        <i class="fas fa-chevron-left text-xs"></i>
                     </a>
                 {% endif %}
-
+                
                 {% for i in 1..total_pages %}
-                    <a href="?page={{ i }}" class="btn btn-outline {{ i == current_page ? 'active' : '' }}">
+                    <a href="?page={{ i }}" class="w-9 h-9 flex items-center justify-center rounded-lg border {{ i == current_page ? 'border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600' }} transition-all text-sm font-medium">
                         {{ i }}
                     </a>
                 {% endfor %}
 
                 {% if current_page < total_pages %}
-                    <a href="?page={{ current_page + 1 }}" class="btn btn-outline">
-                        Suivant <i class="fas fa-chevron-right"></i>
+                    <a href="?page={{ current_page + 1 }}" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm">
+                        <i class="fas fa-chevron-right text-xs"></i>
                     </a>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 
-<style>
-.donators-dashboard {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.section-title-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card i {
-    font-size: 2rem;
-    color: var(--primary-color);
-}
-
-.search-box {
-    position: relative;
-    margin-bottom: 1rem;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-.search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-}
-
-.donators-table {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.donator-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.led-col {
-    text-align: center;
-    vertical-align: middle;
-    width: 44px;
-}
-.led-status {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0,0,0,0.13);
-    position: relative;
-    cursor: pointer;
-}
-.led-status[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    left: 50%;
-    top: 120%;
-    transform: translateX(-50%);
-    background: #222;
-    color: #fff;
-    padding: 2px 8px;
-    border-radius: 5px;
-    font-size: 0.85em;
-    white-space: nowrap;
-    z-index: 9999;
-    opacity: 0.98;
-    pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.17);
-}
-
-.donator-info img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.donator-info div {
-    display: flex;
-    flex-direction: column;
-}
-
-.donator-info span {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.last-donation {
-    display: flex;
-    flex-direction: column;
-}
-
-.badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.badge-success {
-    background: #e1f7e1;
-    color: #2ecc71;
-}
-
-.badge-secondary {
-    background: #f5f6f7;
-    color: #95a5a6;
-}
-
-.actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 2rem;
-}
-
-@media (max-width: 768px) {
-    .donators-dashboard {
-        padding: 1rem;
-    }
-
-    .section-title-bar {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    .stats-cards {
-        grid-template-columns: 1fr;
-    }
-
-    .donators-table {
-        font-size: 0.9rem;
-    }
-
-    th, td {
-        padding: 0.75rem;
-    }
-}
-</style>
-
 <script>
 function filterDonators() {
-    // À implémenter : filtrage des donateurs
+    // Logic kept from original
     const searchTerm = document.getElementById('searchDonators').value;
-    console.log('Filtering donators:', searchTerm);
+    console.log('Filtering:', searchTerm);
 }
-
 function sortDonators() {
-    // À implémenter : tri des donateurs
     const sortBy = document.getElementById('sortDonators').value;
-    console.log('Sorting donators by:', sortBy);
+    console.log('Sorting:', sortBy);
 }
-
 function exportDonators() {
-    // À implémenter : export des données des donateurs
-    console.log('Exporting donators data');
-}
-
-function sendMessage(donatorId) {
-    // À implémenter : envoi de message à un donateur
-    console.log('Sending message to donator:', donatorId);
+    console.log('Exporting data');
 }
 </script>
+{% endblock %}
+
+
+

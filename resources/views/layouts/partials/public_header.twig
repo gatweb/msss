@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 h-20 flex items-center justify-between">
         <a href="{{ logo_href|default('/') }}" class="flex items-center gap-3 group">
             {% if logo_image is not same as(false) and logo_image is not empty %}
-                <img src="{{ logo_image }}" alt="{{ logo_label|default('Msss') }}" class="h-10 w-auto group-hover:scale-105 transition-transform duration-300">
+                <img src="{{ logo_image }}" alt="{{ logo_label|default('Msss') }}" class="h-16 w-auto group-hover:scale-105 transition-transform duration-300">
             {% endif %}
             {% if logo_icon %}
                 <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-100 transition-colors duration-300">
@@ -11,7 +11,8 @@
                 </div>
             {% endif %}
             <span class="flex flex-col">
-                <span class="font-heading font-bold text-xl text-secondary-900 leading-none group-hover:text-primary-600 transition-colors duration-300">
+                {# accessiblity only label #}
+                <span class="sr-only">
                     {{ logo_label|default('Msss') }}
                 </span>
                 {% if logo_sub_label %}

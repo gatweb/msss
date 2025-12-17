@@ -1,68 +1,97 @@
+{% extends 'layouts/auth.twig' %}
 
-<div class="auth-header">
-    <h1>Connexion</h1>
-    <p>Connectez-vous à votre compte créatrice</p>
-</div>
+{% block title %}Connexion{% endblock %}
 
-{% set messages = flash_messages() %}
-{% for message in messages %}
-    <div class="flash-stack">
-        <div class="flash-message flash-message--{{ message.type }}">
-            {{ message.message }}
-        </div>
+{% block content %}
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-heading font-bold text-slate-900 mb-2">Bon retour parmi nous !</h1>
+        <p class="text-slate-600">Connectez-vous pour gérer votre espace créatrice</p>
     </div>
-{% endfor %}
 
-<form action="/login" method="POST" class="auth-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <form action="/login" method="POST" class="space-y-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-    <div class="form-group">
-        <label for="email">Email</label>
-        <div class="input-group">
-            <i class="fas fa-envelope"></i>
+        <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Adresse Email</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-envelope text-slate-400"></i>
+                </div>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    autocomplete="email"
+                    value="{{ old.email|default('') }}"
+                    class="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    placeholder="vous@exemple.com"
+                >
+            </div>
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between mb-1">
+                <label for="password" class="block text-sm font-medium text-slate-700">Mot de passe</label>
+                <a href="/forgot-password" class="text-xs font-medium text-primary-600 hover:text-primary-700">Oublié ?</a>
+            </div>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-lock text-slate-400"></i>
+                </div>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    autocomplete="current-password"
+                    class="block w-full pl-10 pr-10 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    placeholder="••••••••"
+                >
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none toggle-password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center">
             <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                autocomplete="email"
-                value="{{ old.email|default('') }}"
-                placeholder="votre@email.com"
+                id="remember"
+                name="remember"
+                type="checkbox"
+                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded cursor-pointer"
             >
+            <label for="remember" class="ml-2 block text-sm text-slate-600 cursor-pointer">
+                Se souvenir de moi
+            </label>
         </div>
+
+        <button type="submit" class="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all transform hover:-translate-y-0.5">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Se connecter</span>
+        </button>
+    </form>
+
+    <div class="mt-8 text-center text-sm">
+        <span class="text-slate-500">Pas encore de compte ?</span>
+        <a href="/register" class="font-medium text-primary-600 hover:text-primary-700 ml-1">
+            Créer un compte
+        </a>
     </div>
 
-    <div class="form-group">
-        <label for="password">Mot de passe</label>
-        <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                autocomplete="current-password"
-                placeholder="Votre mot de passe"
-            >
-            <button type="button" class="toggle-password">
-                <i class="fas fa-eye"></i>
-            </button>
-        </div>
-    </div>
-
-    <div class="form-group checkbox-group">
-        <input type="checkbox" id="remember" name="remember">
-        <label for="remember">Se souvenir de moi</label>
-    </div>
-
-    <button type="submit" class="btn">
-        <i class="fas fa-sign-in-alt"></i>
-        Se connecter
-    </button>
-
-    <div class="auth-footer">
-        <a href="/forgot-password">Mot de passe oublié ?</a>
-        <span class="separator">•</span>
-        <a href="/register">Créer un compte</a>
-    </div>
-</form>
+    <script>
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,208 +1,272 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<div class="dashboard-container">
-    <!-- En-tête -->
-    <div class="section-title-bar">
-        <h1>Gestion des Dons</h1>
-        <div class="header-actions">
-            <button class="btn btn-outline" id="exportDonations">
-                <i class="fas fa-download"></i> Exporter
+{% block content %}
+{# Donations Dashboard #}
+
+<div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-secondary-900">Gestion des Dons</h1>
+        <p class="text-sm text-secondary-500">Suivez et gérez tous vos dons reçus</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+        <div class="relative group">
+             <button class="flex items-center gap-2 px-4 py-2 bg-white border border-secondary-200 rounded-lg text-secondary-700 hover:bg-secondary-50 transition-colors text-sm font-medium shadow-sm">
+                <i class="fas fa-filter"></i>
+                <span class="hidden sm:inline">Filtrer</span>
+                <i class="fas fa-chevron-down text-xs"></i>
             </button>
-            <div class="dropdown">
-                <button class="btn btn-outline dropdown-toggle">
-                    <i class="fas fa-filter"></i> Filtrer
-                </button>
-                <div class="dropdown-menu">
-                    <a href="#" data-period="today">Aujourd'hui</a>
-                    <a href="#" data-period="week">Cette semaine</a>
-                    <a href="#" data-period="month">Ce mois</a>
-                    <a href="#" data-period="year">Cette année</a>
-                    <a href="#" data-period="all">Tout</a>
-                </div>
+             {# Dropdown Content #}
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-secondary-100 hidden group-hover:block transition-all transform origin-top-right z-10">
+                <a href="#" data-period="today" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Aujourd'hui</a>
+                <a href="#" data-period="week" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Cette semaine</a>
+                <a href="#" data-period="month" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Ce mois</a>
+                <a href="#" data-period="year" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Cette année</a>
+                <div class="border-t border-secondary-100 my-1"></div>
+                <a href="#" data-period="all" class="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Tout</a>
             </div>
         </div>
+        
+        <button id="exportDonations" class="flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 border border-transparent rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium">
+            <i class="fas fa-download"></i>
+            <span class="hidden sm:inline">Exporter</span>
+        </button>
     </div>
+</div>
 
-    <!-- Statistiques des dons -->
-    <div class="donations-stats">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-euro-sign"></i>
+{# Quick Stats Grid #}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-secondary-200">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <p class="text-sm font-medium text-secondary-500 mb-1">Total des Dons</p>
+                <div class="text-2xl font-bold text-secondary-900">{{ stats.total_amount|default(0)|number_format(2, ',', ' ') }} €</div>
             </div>
-            <div class="stat-content">
-                <h3>Total des Dons</h3>
-                <p class="stat-value">{{ stats.total_amount|default(0)|number_format(2, ',', ' ') }} €</p>
-                {% if stats.trend is defined %}
-                <p class="stat-trend {{ stats.trend >= 0 ? 'positive' : 'negative' }}">
-                    <i class="fas fa-{{ stats.trend >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
-                    {{ stats.trend|abs }}% vs mois dernier
-                </p>
-                {% endif %}
+            <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                <i class="fas fa-euro-sign text-xl"></i>
             </div>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Donateurs Uniques</h3>
-                <p class="stat-value">{{ stats.unique_donors|default(0) }}</p>
-                <p class="stat-detail">Don moyen : {{ stats.average_donation|default(0)|number_format(2, ',', ' ') }} €</p>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Types de Dons</h3>
-                <canvas id="donationTypesChart" width="100" height="100"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Graphique des dons -->
-    <div class="donations-chart-container">
-        <div class="section-title-bar">
-            <h2>Évolution des Dons</h2>
-            <div class="chart-period-selector">
-                <button class="btn btn-sm active" data-period="week">7J</button>
-                <button class="btn btn-sm" data-period="month">30J</button>
-                <button class="btn btn-sm" data-period="year">1A</button>
-            </div>
-        </div>
-        <canvas id="donationsChart"></canvas>
-    </div>
-
-    <!-- Liste des dons -->
-    <div class="donations-list-container">
-        <div class="section-title-bar">
-            <h2>Historique des Dons</h2>
-            <div class="list-actions">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchDonations" placeholder="Rechercher un donateur...">
-                </div>
-                <select id="sortDonations">
-                    <option value="date_desc">Plus récents</option>
-                    <option value="date_asc">Plus anciens</option>
-                    <option value="amount_desc">Montant (décroissant)</option>
-                    <option value="amount_asc">Montant (croissant)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="donations-table-container">
-            <table class="donations-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Donateur</th>
-                        <th>Montant</th>
-                        <th>Type</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for donation in donations %}
-                        <tr data-id="{{ donation.id }}">
-                            <td>
-                                <div class="donation-date">
-                                    {{ donation.donation_timestamp|date('d/m/Y') }}
-                                    <span class="donation-time">
-                                        {{ donation.donation_timestamp|date('H:i') }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="donor-info">
-                                    <span class="donor-name">
-                                        {{ donation.donor_name }}
-                                    </span>
-                                    {% if donation.is_recurring %}
-                                        <span class="badge badge-recurring" title="Donateur régulier">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="donation-amount">
-                                    {{ donation.amount|number_format(2, ',', ' ') }} €
-                                </div>
-                            </td>
-                            <td>
-                                <span class="donation-type {{ donation.donation_type|lower }}">
-                                    {{ donation.donation_type }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if donation.timer_status == 'running' %}
-                                    <div class="timer-status">
-                                        <i class="fas fa-clock"></i>
-                                        <span class="timer" data-start="{{ donation.timer_start_time }}"
-                                              data-elapsed="{{ donation.timer_elapsed_seconds }}">
-                                            00:00:00
-                                        </span>
-                                    </div>
-                                {% else %}
-                                    <span class="donation-status completed">
-                                        <i class="fas fa-check"></i> Terminé
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="donation-actions">
-                                    {% if donation.timer_status == 'running' %}
-                                        <button class="btn btn-icon stop-timer" title="Arrêter le timer">
-                                            <i class="fas fa-stop"></i>
-                                        </button>
-                                    {% endif %}
-                                    <button class="btn btn-icon view-donation" title="Voir les détails">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-icon delete-donation" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        {% if totalPages is defined and totalPages > 1 %}
-        <div class="pagination">
-            {% if currentPage > 1 %}
-                <a href="?page={{ currentPage - 1 }}" class="btn btn-outline">&laquo; Précédent</a>
-            {% endif %}
-            
-            <span class="page-info">Page {{ currentPage }} sur {{ totalPages }}</span>
-            
-            {% if currentPage < totalPages %}
-                <a href="?page={{ currentPage + 1 }}" class="btn btn-outline">Suivant &raquo;</a>
-            {% endif %}
+        {% if stats.trend is defined %}
+        <div class="flex items-center text-sm {{ stats.trend >= 0 ? 'text-green-600' : 'text-red-600' }}">
+            <i class="fas fa-{{ stats.trend >= 0 ? 'arrow-up' : 'arrow-down' }} mr-1"></i>
+            <span class="font-bold">{{ stats.trend|abs }}%</span>
+            <span class="text-secondary-400 ml-1">vs mois dernier</span>
         </div>
         {% endif %}
     </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-secondary-200">
+         <div class="flex items-start justify-between mb-4">
+            <div>
+                <p class="text-sm font-medium text-secondary-500 mb-1">Donateurs Uniques</p>
+                <div class="text-2xl font-bold text-secondary-900">{{ stats.unique_donors|default(0) }}</div>
+            </div>
+             <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                <i class="fas fa-users text-xl"></i>
+            </div>
+        </div>
+        <div class="text-sm text-secondary-500">
+            Don moyen : <span class="font-medium text-secondary-900">{{ stats.average_donation|default(0)|number_format(2, ',', ' ') }} €</span>
+        </div>
+    </div>
+
+    {# Chart Placeholder / Mini Chart #}
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-secondary-200 flex flex-col justify-between">
+         <div class="flex items-start justify-between">
+            <div>
+                 <p class="text-sm font-medium text-secondary-500 mb-1">Types de Dons</p>
+                 <h3 class="font-bold text-secondary-900">Répartition</h3>
+            </div>
+             <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                <i class="fas fa-chart-pie text-xl"></i>
+            </div>
+        </div>
+        <div class="h-16 flex items-end gap-2 mt-2">
+            {# Very simple CSS bar chart for demo #}
+             <div class="w-1/3 bg-blue-200 rounded-t h-full relative group" title="Réguliers">
+                 <div class="absolute bottom-0 w-full bg-blue-500 rounded-t" style="height: 60%"></div>
+             </div>
+             <div class="w-1/3 bg-green-200 rounded-t h-full relative group" title="Ponctuels">
+                  <div class="absolute bottom-0 w-full bg-green-500 rounded-t" style="height: 30%"></div>
+             </div>
+             <div class="w-1/3 bg-orange-200 rounded-t h-full relative group" title="Zizou">
+                  <div class="absolute bottom-0 w-full bg-orange-500 rounded-t" style="height: 10%"></div>
+             </div>
+        </div>
+        <div class="hidden">
+             {# Keep canvas for JS if needed later #}
+             <canvas id="donationTypesChart" width="100" height="100"></canvas>
+        </div>
+    </div>
 </div>
 
-<!-- Modal Détails du Don -->
-<div class="modal" id="donationDetailsModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Détails du Don</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+{# Donations List Section #}
+<div class="bg-white border border-secondary-200 rounded-xl overflow-hidden shadow-sm">
+    {# Main Chart Container (Collapsible or Separate Section?) - Let's keep it clean for now #}
+    
+    {# Table Header & Actions #}
+    <div class="p-4 border-b border-secondary-200 flex flex-col sm:flex-row gap-4 justify-between items-center bg-secondary-50">
+        <h2 class="font-bold text-secondary-900">Historique des Dons</h2>
+        
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+             <div class="relative flex-1 sm:w-64">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400"></i>
+                <input type="text" id="searchDonations" placeholder="Rechercher..." class="w-full pl-10 pr-4 py-2 bg-white border border-secondary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
             </div>
-            <div class="modal-body">
-                <div class="donation-details">
-                    <!-- Les détails seront chargés dynamiquement -->
+            
+            <select id="sortDonations" class="pl-3 pr-8 py-2 bg-white border border-secondary-200 rounded-lg text-sm text-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                <option value="date_desc">Plus récents</option>
+                <option value="date_asc">Plus anciens</option>
+                <option value="amount_desc">Montant (décroissant)</option>
+                <option value="amount_asc">Montant (croissant)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-white text-secondary-500 uppercase text-xs font-semibold border-b border-secondary-200">
+                <tr>
+                    <th class="px-6 py-4">Date</th>
+                    <th class="px-6 py-4">Donateur</th>
+                    <th class="px-6 py-4">Montant</th>
+                    <th class="px-6 py-4 text-center">Type</th>
+                    <th class="px-6 py-4 text-center">Statut</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-secondary-100">
+                {% for donation in donations %}
+                    <tr class="hover:bg-secondary-50 transition-colors group" data-id="{{ donation.id }}">
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-secondary-900">{{ donation.donation_timestamp|date('d/m/Y') }}</span>
+                                <span class="text-xs text-secondary-400">{{ donation.donation_timestamp|date('H:i') }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                             <div class="flex items-center gap-2">
+                                <span class="font-medium text-secondary-900">{{ donation.donor_name }}</span>
+                                {% if donation.is_recurring %}
+                                    <span class="text-blue-500" title="Donateur régulier">
+                                        <i class="fas fa-sync-alt text-xs"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-secondary-900">
+                            {{ donation.amount|number_format(2, ',', ' ') }} €
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-700 uppercase tracking-wide">
+                                {{ donation.donation_type }}
+                            </span>
+                        </td>
+                         <td class="px-6 py-4 text-center">
+                            {% if donation.timer_status == 'running' %}
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
+                                    <i class="fas fa-clock animate-pulse"></i>
+                                    <span class="timer font-mono text-xs font-bold" data-start="{{ donation.timer_start_time }}" data-elapsed="{{ donation.timer_elapsed_seconds }}">
+                                        00:00:00
+                                    </span>
+                                </div>
+                            {% else %}
+                                <div class="inline-flex items-center gap-1.5 text-green-600 font-medium text-xs">
+                                    <i class="fas fa-check-circle"></i>
+                                    Terminé
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {% if donation.timer_status == 'running' %}
+                                    <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors stop-timer" title="Arrêter le timer">
+                                        <i class="fas fa-stop text-xs"></i>
+                                    </button>
+                                {% endif %}
+                                <button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary-100 text-secondary-500 transition-colors view-donation" title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-secondary-400 hover:text-red-500 transition-colors delete-donation" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if totalPages is defined and totalPages > 1 %}
+    <div class="bg-white px-4 py-3 border-t border-secondary-200 flex items-center justify-between sm:px-6">
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <p class="text-sm text-secondary-700">
+                Page <span class="font-medium">{{ currentPage }}</span> sur <span class="font-medium">{{ totalPages }}</span>
+            </p>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {% if currentPage > 1 %}
+                    <a href="?page={{ currentPage - 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-secondary-300 bg-white text-sm font-medium text-secondary-500 hover:bg-secondary-50">
+                        <span class="sr-only">Précédent</span>
+                        <i class="fas fa-chevron-left h-5 w-5"></i>
+                    </a>
+                {% endif %}
+                
+                {% if currentPage < totalPages %}
+                    <a href="?page={{ currentPage + 1 }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-secondary-300 bg-white text-sm font-medium text-secondary-500 hover:bg-secondary-50">
+                        <span class="sr-only">Suivant</span>
+                        <i class="fas fa-chevron-right h-5 w-5"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Détails du Don (Tailwind Version) -->
+<div id="donationDetailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        {# Overlay #}
+        <div class="fixed inset-0 bg-secondary-900 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeDonationModal()"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fas fa-info-circle text-primary-600"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-secondary-900" id="modal-title">
+                            Détails du Don
+                        </h3>
+                        <div class="mt-2">
+                             <div class="donation-details space-y-3 text-sm text-secondary-600">
+                                <!-- Les détails seront chargés dynamiquement -->
+                                <p class="italic text-secondary-400">Chargement...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm" onclick="closeDonationModal()">
+                    Fermer
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function closeDonationModal() {
+        document.getElementById('donationDetailsModal').classList.add('hidden');
+    }
+    
+    // Simple Chart Logic placeholder (if needed)
+    // ...
+</script>
+{% endblock %}
+

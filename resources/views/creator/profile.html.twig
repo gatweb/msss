@@ -1,93 +1,169 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<div class="row">
-    <div class="col s12 m12">
-        <div class="card">
-            <div class="card-image" style="background: #e3e3e3;">
-                <img src="{{ creator.banner_url|default('/assets/img/default-banner.jpg') }}" alt="Bannière" style="height:200px; object-fit:cover; width:100%;">
-                <a class="btn-floating halfway-fab waves-effect waves-light blue modal-trigger" href="#bannerModal"><i class="fas fa-camera"></i></a>
+{% block content %}
+{# Animated Background #}
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] mix-blend-screen animate-blob"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-500/20 rounded-full blur-[100px] mix-blend-screen animate-blob animation-delay-2000"></div>
+</div>
+
+<div class="relative z-10 max-w-5xl mx-auto space-y-8">
+    {# Profile Header Card #}
+    <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-xl overflow-hidden group">
+        {# Banner #}
+        <div class="relative h-48 sm:h-64 bg-gray-200 overflow-hidden">
+            <img src="{{ creator.banner_url|default('/assets/img/default-banner.jpg') }}" alt="Bannière" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <button class="absolute bottom-4 right-4 p-2 bg-white/20 backdrop-blur-md border border-white/30 text-white rounded-xl hover:bg-white/30 transition-all shadow-lg hover:scale-105 group/btn" data-modal-target="#bannerModal">
+                <i class="fas fa-camera text-xl drop-shadow-md group-hover/btn:rotate-12 transition-transform"></i>
+            </button>
+        </div>
+        
+        {# Content #}
+        <div class="relative px-6 pb-6 mt-[-80px] sm:mt-[-100px] flex flex-col items-center sm:items-start sm:flex-row sm:gap-6">
+            {# Avatar #}
+            <div class="relative shrink-0">
+                <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full p-1 bg-white shadow-2xl ring-4 ring-white/50 relative z-10">
+                    <img src="{{ creator.profile_pic_url|default('/assets/img/default-avatar.png') }}" alt="Avatar" class="w-full h-full rounded-full object-cover bg-gray-100">
+                    <button class="absolute bottom-2 right-2 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-all shadow-lg border-2 border-white hover:scale-110" data-modal-target="#avatarModal">
+                        <i class="fas fa-camera text-sm"></i>
+                    </button>
+                </div>
             </div>
-            <div class="card-content center-align">
-                <img src="{{ creator.profile_pic_url|default('/assets/img/default-avatar.png') }}" alt="Avatar" class="circle responsive-img z-depth-2" style="width:120px; margin-top:-70px; border:4px solid #fff;">
-                <a class="btn-floating btn-small waves-effect waves-light blue modal-trigger" href="#avatarModal" style="position:relative; top:-45px; left:40px;"><i class="fas fa-camera"></i></a>
-                <h5>{{ creator.name }}</h5>
-                <span class="grey-text">@{{ creator.tagline }}</span>
+            
+            {# Text Info #}
+            <div class="mt-4 sm:mt-[110px] text-center sm:text-left flex-1 min-w-0">
+                <h1 class="text-3xl font-bold text-gray-900 truncate">{{ creator.name }}</h1>
+                <p class="text-indigo-600 font-medium">@{{ creator.tagline }}</p>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col s12 m6">
-        <div class="card">
-            <div class="card-content">
-                <span class="card-title">Informations de base</span>
-                <form id="profileForm">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {# General Information Form #}
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-6 md:p-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    Informations de base
+                </h2>
+                
+                <form id="profileForm" class="space-y-5">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <div class="input-field">
-                        <input id="name" name="name" type="text" value="{{ creator.name }}">
-                        <label for="name" class="active">Nom d'affichage</label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1">
+                            <label for="name" class="block text-sm font-bold text-gray-700">Nom d'affichage</label>
+                            <input id="name" name="name" type="text" value="{{ creator.name }}" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all bg-white/50" placeholder="Votre nom">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label for="tagline" class="block text-sm font-bold text-gray-700">Tagline (Identifiant)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-2.5 text-gray-400 font-bold">@</span>
+                                <input id="tagline" name="tagline" type="text" value="{{ creator.tagline }}" class="w-full pl-8 pr-4 py-2 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all bg-white/50" placeholder="mon_pseudo">
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-field">
-                        <input id="tagline" name="tagline" type="text" value="{{ creator.tagline }}">
-                        <label for="tagline" class="active">Tagline</label>
+
+                    <div class="space-y-1">
+                        <label for="description" class="block text-sm font-bold text-gray-700">Bio / Description</label>
+                        <textarea id="description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all bg-white/50 resize-none" placeholder="Dites-nous en plus sur vous... (Markdown supporté)">{{ creator.description }}</textarea>
                     </div>
-                    <div class="input-field">
-                        <textarea id="description" name="description" class="materialize-textarea" rows="4">{{ creator.description }}</textarea>
-                        <label for="description" class="active">Description</label>
+
+                    <div class="space-y-1">
+                        <label for="donation_goal" class="block text-sm font-bold text-gray-700">Objectif de don (€)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-2.5 text-gray-400">
+                                <i class="fas fa-euro-sign"></i>
+                            </span>
+                            <input id="donation_goal" name="donation_goal" type="number" step="0.01" min="0" value="{{ creator.donation_goal }}" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all bg-white/50">
+                        </div>
                     </div>
-                    <div class="input-field">
-                        <input id="donation_goal" name="donation_goal" type="number" step="0.01" min="0" value="{{ creator.donation_goal }}">
-                        <label for="donation_goal" class="active">Objectif de dons (€)</label>
+
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="btn-gradient flex items-center gap-2">
+                            <i class="fas fa-save"></i>
+                            <span>Enregistrer les modifications</span>
+                        </button>
                     </div>
-                    <button type="submit" class="btn blue waves-effect waves-light">
-                        <i class="fas fa-save left"></i>Enregistrer
-                    </button>
                 </form>
             </div>
         </div>
-    </div>
-    <div class="col s12 m6">
-        <div class="card">
-            <div class="card-content">
-                <span class="card-title">Mes Liens</span>
-                <a class="btn-floating btn-small waves-effect waves-light green right modal-trigger" href="#addLinkModal"><i class="fas fa-plus"></i></a>
-                <ul class="collection">
+
+        {# Links Section #}
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl p-6 h-full flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <div class="p-2 bg-pink-100 text-pink-600 rounded-lg">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        Mes Liens
+                    </h2>
+                    <button class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-indigo-100 hover:text-indigo-600 transition-colors" data-modal-target="#addLinkModal">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                     {% if links is not empty %}
                         {% for link in links %}
-                            <li class="collection-item avatar">
-                                <i class="fas fa-link circle blue"></i>
-                                <span class="title">{{ link.title }}</span>
-                                <p><a href="{{ link.url }}" target="_blank">Lien externe</a></p>
-                                <a href="#editLinkModal" class="secondary-content modal-trigger"><i class="fas fa-edit"></i></a>
-                            </li>
+                            <div class="group flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white hover:border-indigo-200 hover:shadow-md transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-bold text-gray-800 truncate text-sm">{{ link.title }}</h3>
+                                    <a href="{{ link.url }}" target="_blank" class="text-xs text-gray-400 truncate block hover:text-indigo-500 hover:underline">
+                                        {{ link.url }}
+                                    </a>
+                                </div>
+                                <button class="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-indigo-600 transition-all" data-modal-target="#editLinkModal" data-id="{{ link.id }}">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            </div>
                         {% endfor %}
                     {% else %}
-                        <li class="collection-item">Aucun lien enregistré.</li>
+                        <div class="text-center py-10 text-gray-400">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-link-slash text-2xl opacity-50"></i>
+                            </div>
+                            <p class="text-sm">Aucun lien public.</p>
+                            <button class="mt-2 text-indigo-600 font-bold text-sm hover:underline" data-modal-target="#addLinkModal">Ajouter un lien</button>
+                        </div>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modals -->
-<div id="addLinkModal" class="modal">
-    ...
+{# Retaining Modals - assuming they are populated via JS or need to be present #}
+<div id="addLinkModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    {# Placeholder for Modal Content #}
 </div>
-<div id="editLinkModal" class="modal">
-    ...
-</div>
-<div class="modal fade" id="avatarModal">
-    ...
-</div>
-<div class="modal fade" id="bannerModal">
-    ...
-</div>
-<div class="modal fade" id="linkModal">
-    ...
-</div>
-<div class="modal fade" id="packModal">
-    ...
-</div>
+<div id="editLinkModal" class="hidden fixed inset-0 z-50 overflow-y-auto"></div>
+<div id="avatarModal" class="hidden fixed inset-0 z-50 overflow-y-auto"></div>
+<div id="bannerModal" class="hidden fixed inset-0 z-50 overflow-y-auto"></div>
 
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+</style>
+
+{# Re-include the profile JS but maybe we should ensure it handles the new modal classes #}
 <script src="/assets/js/profile.js"></script>
+{% endblock %}

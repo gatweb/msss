@@ -1,137 +1,209 @@
+{% extends 'layouts/creator_dashboard.twig' %}
 
-<section class="dashboard-progress card">
-    <div class="dashboard-progress-header">
-        <div class="dashboard-progress-title">
-            <span class="dashboard-progress-icon">🎯</span>
-            <span>Objectif de dons</span>
+{% block content %}
+{# Animated Background #}
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] mix-blend-screen animate-blob"></div>
+    <div class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] mix-blend-screen animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-pink-500/20 rounded-full blur-[100px] mix-blend-screen animate-blob animation-delay-4000"></div>
+</div>
+
+<div class="relative z-10 space-y-8">
+    {# Stats Progress Section #}
+    <div class="group relative">
+        <div class="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+        <div class="relative bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="p-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl text-white shadow-lg">
+                        <i class="fas fa-bullseye text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 leading-tight">Objectif de dons</h2>
+                        <p class="text-sm text-gray-500">Progression mensuelle</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600">{{ totalDonations|money }}</div>
+                    <div class="text-sm text-gray-400 font-medium">sur {{ donationGoal|money }}</div>
+                </div>
+            </div>
+            
+            {# Progress Bar #}
+            <div class="relative h-8 bg-gray-100 rounded-full overflow-hidden mb-4 shadow-inner border-2 border-gray-100">
+                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 transition-all duration-1000 ease-out rounded-full shadow-[0_0_20px_rgba(147,51,234,0.5)] flex items-center justify-end px-3" style="width: {{ progress }}%">
+                    <div class="absolute inset-0 w-full h-full" style="background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem;"></div>
+                    <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                    {% if progress > 10 %}
+                        <span class="text-white font-bold text-xs relative z-10 drop-shadow-md">{{ progress }}%</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center text-sm font-medium">
+                <span class="text-purple-700 font-bold bg-purple-50 px-3 py-1 rounded-full border border-purple-100 shadow-sm">
+                    {{ progress }}% complété
+                </span>
+                <div>
+                     {% if goalReached %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-200 gap-2 shadow-sm">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            Objectif atteint ! 🎉
+                        </span>
+                    {% elseif closeToGoal %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 shadow-sm">
+                            🔥 Plus que {{ remainingAmount|money }} !
+                        </span>
+                    {% else %}
+                        <span class="text-gray-500 italic flex items-center gap-2">
+                            <i class="fas fa-rocket text-purple-400"></i> Continue sur ta lancée !
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-    <div class="dashboard-progress-bar" style="--progress-value: {{ progress }}">
-        <div class="dashboard-progress-value"></div>
-        <div class="dashboard-progress-label">{{ progress }}%</div>
-    </div>
-    <div class="dashboard-progress-summary">
-        <strong>{{ totalDonations|money }}</strong>
-        <span class="dashboard-progress-separator">/</span>
-        <strong>{{ donationGoal|money }}</strong>
-        {% if goalReached %}
-            <span class="dashboard-progress-badge success">🎉 Objectif atteint !</span>
-        {% elseif closeToGoal %}
-            <span class="dashboard-progress-badge warning">Plus que {{ remainingAmount|money }} !</span>
-        {% endif %}
-    </div>
-    <div class="dashboard-progress-note">
-        {% if goalReached %}
-            Félicitations, tu as atteint ton objectif !
-        {% elseif closeToGoal %}
-            Tu es tout près du but, courage !
-        {% else %}
-            Continue sur ta lancée, tu y es presque !
-        {% endif %}
-    </div>
-</section>
 
-<section class="card dashboard-card">
-    <div class="dashboard-card-header">
-        <h2>Derniers dons</h2>
-        <button class="btn btn-accent" type="button" onclick="openDonationModal()">
-            <i class="fas fa-heart"></i>
-            <span>Ajouter un don</span>
-        </button>
-    </div>
-    <div class="dashboard-table-wrapper">
-        <table class="dashboard-table">
-            <thead>
-                <tr>
-                    <th>Donateur</th>
-                    <th>Email</th>
-                    <th class="text-right">Montant</th>
-                    <th class="text-center">Date</th>
-                    <th>Type</th>
-                    <th>Commentaire</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% if recentDonations is not empty %}
-                {% for donation in recentDonations %}
-                    {% set profileUrl = donation.profile_url|default('#') %}
-                    {% set donorName = donation.donor_name|default('Anonyme') %}
-                    {% set donorEmail = donation.donor_email|default('—') %}
-                    {% set amount = donation.amount|default(0) %}
-                    {% set comment = donation.comment|default('')|trim %}
-                    {% set initials = donation.initials|default('—') %}
-                    {% set donationType = donation.donation_type|default('') %}
-                    {% set typeColor = donation.type_color|default('#f59e42') %}
-                    {% set createdAt = donation.created_at %}
-
-                    {% set dateLabel = createdAt|date('d/m/Y') %}
-                    {% set timeLabel = createdAt|date('H:i') %}
-                    <tr class="dashboard-table-row" onclick="window.location.href='{{ profileUrl }}'">
-                        <td>
-                            <div class="donor-cell">
-                                <div class="donor-avatar">{{ initials }}</div>
-                                <a href="{{ profileUrl }}" class="donor-link" title="Voir le profil de {{ donorName }}" onclick="event.stopPropagation();">
-                                    <span class="donor-name" title="{{ donorName }}">{{ donorName }}</span>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="donor-email" title="{{ donorEmail }}">{{ donorEmail }}</span>
-                        </td>
-                        <td class="text-right">
-                            <span class="donation-amount">{{ amount|money }}</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="donation-date">
-                                <span>{{ dateLabel }}</span>
-                                <span class="donation-time">{{ timeLabel }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="donation-type-badge" style="color: {{ typeColor }}; background-color: {{ typeColor }}22; border-color: {{ typeColor }}33;">
-                                {{ donationType|replace({'_': ' '})|title }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if comment != '' %}
-                                <span class="donation-comment" title="{{ comment }}">{{ comment }}</span>
-                            {% else %}
-                                <span class="donation-comment empty">-</span>
-                            {% endif %}
-                        </td>
+    {# Recent Donations Section #}
+    <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-white/50">
+            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-heart text-pink-500"></i> Derniers dons
+            </h2>
+            <a href="/dashboard/donations" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all text-sm font-bold shadow-sm">
+                 <i class="fas fa-list"></i>
+                 Voir tout
+            </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="bg-gray-50/50 text-gray-500 uppercase tracking-wider text-xs border-b border-gray-100">
+                        <th class="px-6 py-4 font-bold">Donateur</th>
+                        <th class="px-6 py-4 font-bold text-right">Montant</th>
+                        <th class="px-6 py-4 font-bold text-center">Date</th>
+                        <th class="px-6 py-4 font-bold">Message</th>
+                        <th class="px-6 py-4 font-bold text-center">Type</th>
                     </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="6" class="dashboard-table-empty">Aucun don récent</td>
-                </tr>
-            {% endif %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% if recentDonations is not empty %}
+                        {% for donation in recentDonations %}
+                            {% set profileUrl = donation.profile_url|default('#') %}
+                            {% set donorName = donation.donor_name|default('Anonyme') %}
+                            {% set initials = donation.initials|default('—') %}
+                            {% set amount = donation.amount|default(0) %}
+                            {% set comment = donation.comment|default('')|trim %}
+                            {% set createdAt = donation.created_at %}
+                            
+                            <tr class="hover:bg-indigo-50/50 even:bg-gray-50/30 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center text-xs font-bold ring-2 ring-white shadow-md group-hover:scale-110 transition-transform">
+                                            {{ initials }}
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-gray-900">{{ donorName }}</div>
+                                            <div class="text-xs text-gray-400">{{ donation.donor_email|default('—') }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold text-gray-900">
+                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-sm">{{ amount|money }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-900 font-medium">{{ createdAt|date('d/m/Y') }}</span>
+                                        <span class="text-xs text-gray-400">{{ createdAt|date('H:i') }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if comment %}
+                                        <div class="relative group/tooltip">
+                                            <span class="text-gray-600 italic truncate max-w-xs block cursor-help">
+                                                "{{ comment }}"
+                                            </span>
+                                            {# Tooltip could go here #}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-300">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% set typeColor = donation.type_color|default('#64748b') %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border" style="background-color: {{ typeColor }}10; color: {{ typeColor }}; border-color: {{ typeColor }}20;">
+                                        {{ donation.donation_type|replace({'_': ' '})|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-400 italic bg-gray-50/30">
+                                <div class="flex flex-col items-center gap-2">
+                                    <i class="fas fa-inbox text-3xl opacity-20"></i>
+                                    <span>Aucun don récent pour le moment.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="dashboard-card-footer">
-        <a href="/dashboard/donators" class="btn btn-outline-primary">Voir tous les donateurs</a>
-    </div>
-</section>
 
-<section class="card useful-links-card">
-    <h2>Liens Utiles</h2>
-    <div class="useful-links-grid">
-        <a class="useful-link-card" href="https://www.amazon.fr/hz/wishlist/intro" target="_blank" rel="noopener">
-            <i class="fab fa-amazon"></i>
-            <span>Amazon</span>
+    {# Useful Links Grid #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="https://www.amazon.fr/hz/wishlist/intro" target="_blank" rel="noopener" class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg hover:-translate-y-1 transition-all flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-orange-100 text-[#FF9900] flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform shadow-inner">
+                <i class="fab fa-amazon"></i>
+            </div>
+            <span class="font-bold text-gray-700 group-hover:text-[#FF9900] transition-colors">Amazon Wishlist</span>
         </a>
-        <a class="useful-link-card" href="https://throne.com/nicofriend" target="_blank" rel="noopener">
-            <i class="fa-solid fa-crown"></i>
-            <span>Throne</span>
+        
+        <a href="https://throne.com/" target="_blank" rel="noopener" class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg hover:-translate-y-1 transition-all flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-[#672EF3] flex items-center justify-center text-xl group-hover:rotate-12 transition-transform shadow-inner">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <span class="font-bold text-gray-700 group-hover:text-[#672EF3] transition-colors">Throne</span>
         </a>
-        <a class="useful-link-card" href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener">
-            <i class="fa-solid fa-envelope"></i>
-            <span>Gmail</span>
+        
+        <a href="https://mail.google.com/" target="_blank" rel="noopener" class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg hover:-translate-y-1 transition-all flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-red-100 text-red-500 flex items-center justify-center text-xl group-hover:rotate-12 transition-transform shadow-inner">
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+            <span class="font-bold text-gray-700 group-hover:text-red-500 transition-colors">Gmail</span>
         </a>
-        <a class="useful-link-card" href="https://creator.twitch.tv/" target="_blank" rel="noopener">
-            <i class="fab fa-twitch"></i>
-            <span>Twitch Creator</span>
+        
+        <a href="https://creator.twitch.tv/" target="_blank" rel="noopener" class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-white/50 hover:shadow-lg hover:-translate-y-1 transition-all flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 text-[#9146FF] flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform shadow-inner">
+                <i class="fab fa-twitch"></i>
+            </div>
+            <span class="font-bold text-gray-700 group-hover:text-[#9146FF] transition-colors">Twitch Creator</span>
         </a>
     </div>
-</section>
+</div>
+
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>
+{% endblock %}
+

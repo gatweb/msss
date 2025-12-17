@@ -8,7 +8,7 @@ export default defineConfig({
         rollupOptions: {
             input: 'resources/css/app.css',
             output: {
-                entryFileNames: 'app.css', // Force static name for simplicity in MVP
+                entryFileNames: 'style.css',
                 assetFileNames: '[name].[ext]'
             }
         }
